@@ -84,21 +84,64 @@ class Verificator:
     def verify_npm(self) -> PrerequisiteCheck:
         """Verifica npm"""
         try:
-            result = subprocess.run(
-                ['npm', '--version'],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-
-            if result.returncode == 0:
-                version = result.stdout.strip()
-                path_result = subprocess.run(
-                    ['where' if os.name == 'nt' else 'which', 'npm'],
+            # En Windows, npm puede ser npm.cmd o necesitar cmd /c
+            if os.name == 'nt':
+                # Intentar primero con npm.cmd
+                try:
+                    result = subprocess.run(
+                        ['npm.cmd', '--version'],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                        shell=False
+                    )
+                    if result.returncode != 0:
+                        # Intentar con cmd /c npm
+                        result = subprocess.run(
+                            ['cmd', '/c', 'npm', '--version'],
+                            capture_output=True,
+                            text=True,
+                            timeout=5,
+                            shell=False
+                        )
+                except:
+                    # Fallback: usar npm directamente
+                    result = subprocess.run(
+                        ['npm', '--version'],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                        shell=True
+                    )
+            else:
+                # Linux/Mac: usar npm directamente
+                result = subprocess.run(
+                    ['npm', '--version'],
                     capture_output=True,
                     text=True,
                     timeout=5
                 )
+
+            if result.returncode == 0:
+                version = result.stdout.strip()
+
+                # Obtener ruta de npm
+                if os.name == 'nt':
+                    path_result = subprocess.run(
+                        ['where', 'npm'],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                        shell=True
+                    )
+                else:
+                    path_result = subprocess.run(
+                        ['which', 'npm'],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+
                 path = path_result.stdout.strip().split('\n')[0] if path_result.returncode == 0 else None
 
                 return PrerequisiteCheck(
@@ -107,8 +150,27 @@ class Verificator:
                     version=version,
                     path=path
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            # Intentar una última vez con shell=True
+            try:
+                result = subprocess.run(
+                    'npm --version',
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    shell=True
+                )
+                if result.returncode == 0:
+                    version = result.stdout.strip()
+                    return PrerequisiteCheck(
+                        name='npm',
+                        found=True,
+                        version=version,
+                        path=None,
+                        message='Version detected but path unavailable'
+                    )
+            except:
+                pass
 
         return PrerequisiteCheck(
             name='npm',

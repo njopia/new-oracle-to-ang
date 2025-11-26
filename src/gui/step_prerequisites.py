@@ -19,11 +19,15 @@ class StepPrerequisites(ctk.CTkFrame):
 
         self.verificator = Verificator()
         self.results = {}
+        self.auto_verified = False  # Flag para verificación automática
 
         self._create_widgets()
 
         # Listener para cambios de idioma
         i18n.add_listener(self._on_language_change)
+
+        # Ejecutar verificación automática después de que se cargue la ventana
+        self.after(500, self._auto_verify)
 
     def _create_widgets(self):
         """Crea los widgets del step"""
@@ -127,6 +131,12 @@ class StepPrerequisites(ctk.CTkFrame):
         """Añade texto al textbox"""
         self.results_text.insert("end", text)
         self.results_text.see("end")
+
+    def _auto_verify(self):
+        """Ejecuta la verificación automáticamente al cargar el step"""
+        if not self.auto_verified:
+            self.auto_verified = True
+            self._on_verify_clicked()
 
     def is_ready(self) -> bool:
         """Verifica si se puede avanzar al siguiente paso"""
