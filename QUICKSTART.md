@@ -1,26 +1,32 @@
 # Guía Rápida de Inicio
 
-Esta guía te ayudará a convertir tus archivos Oracle Forms (.fmb) a XML en minutos.
+Esta guía te ayudará a convertir tus archivos Oracle Forms (.fmb) a XML en minutos usando Python.
+
+## Requisitos
+
+- Python 3.6 o superior
+- Oracle Forms instalado
+- Java instalado
 
 ## Paso 1: Verificar Requisitos
 
 Ejecuta el script de verificación:
 
 ```bash
-./verify_setup.sh
+python3 verify_setup.py
 ```
 
 Si ves errores, continúa al Paso 2. Si todo está OK, salta al Paso 3.
 
 ## Paso 2: Configurar Variables de Entorno
 
-### Opción A: Configuración Automática
+### Opción A: Configuración Interactiva (Recomendado)
 
 ```bash
-./setup_environment.sh
+python3 setup_environment.py
 ```
 
-Este script te guiará en la configuración.
+Este script te guiará en la configuración de forma interactiva y buscará automáticamente las instalaciones de Oracle y Java.
 
 ### Opción B: Configuración Manual
 
@@ -72,19 +78,25 @@ mkdir -p forms xml_output
 ### Convertir un solo archivo:
 
 ```bash
-./convert_fmb_to_xml.sh -f forms/mi_formulario.fmb
+python3 convert_fmb_to_xml.py -f forms/mi_formulario.fmb
 ```
 
 ### Convertir todos los archivos de un directorio:
 
 ```bash
-./convert_fmb_to_xml.sh -d forms -o xml_output
+python3 convert_fmb_to_xml.py -d forms -o xml_output
 ```
 
 ### Con ruta personalizada de salida:
 
 ```bash
-./convert_fmb_to_xml.sh -f forms/mi_formulario.fmb -o mis_xmls
+python3 convert_fmb_to_xml.py -f forms/mi_formulario.fmb -o mis_xmls
+```
+
+### Ver todas las opciones:
+
+```bash
+python3 convert_fmb_to_xml.py --help
 ```
 
 ## Paso 5: Verificar Resultados
@@ -140,29 +152,33 @@ export FORMS_PATH=/ruta/a/tus/librerias
 
 ## Ayuda Adicional
 
-- Ver ayuda del script: `./convert_fmb_to_xml.sh --help`
+- Ver ayuda del script: `python3 convert_fmb_to_xml.py --help`
 - Consultar documentación completa: `README.md`
-- Verificar configuración: `./verify_setup.sh`
+- Verificar configuración: `python3 verify_setup.py`
+- Configurar entorno: `python3 setup_environment.py`
 
 ## Ejemplo Completo
 
 ```bash
 # 1. Verificar setup
-./verify_setup.sh
+python3 verify_setup.py
 
-# 2. Crear estructura
+# 2. Si hay errores, configurar entorno
+python3 setup_environment.py
+
+# 3. Crear estructura
 mkdir -p forms xml_output
 
-# 3. Copiar archivos .fmb a forms/
+# 4. Copiar archivos .fmb a forms/
 cp /ruta/origen/*.fmb forms/
 
-# 4. Convertir todos
-./convert_fmb_to_xml.sh -d forms -o xml_output
+# 5. Convertir todos
+python3 convert_fmb_to_xml.py -d forms -o xml_output
 
-# 5. Verificar
+# 6. Verificar
 ls -lh xml_output/
 
-# 6. Versionar
+# 7. Versionar
 git add xml_output/
 git commit -m "Añadir XMLs de formularios Oracle"
 ```

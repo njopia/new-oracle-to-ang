@@ -1,12 +1,13 @@
 # Conversor de Oracle Forms (.fmb) a XML
 
-Este proyecto proporciona herramientas para convertir archivos Oracle Forms binarios (.fmb) a formato XML.
+Este proyecto proporciona herramientas en Python para convertir archivos Oracle Forms binarios (.fmb) a formato XML.
 
 ## Requisitos Previos
 
-1. **Oracle Forms** instalado (Forms Developer Suite 10g, 11g, o 12c)
-2. **Java JDK** instalado y configurado
-3. Variables de entorno configuradas:
+1. **Python 3.6+** instalado
+2. **Oracle Forms** instalado (Forms Developer Suite 10g, 11g, o 12c)
+3. **Java JDK** instalado y configurado
+4. Variables de entorno configuradas:
    - `ORACLE_HOME`: Ruta de instalación de Oracle Forms
    - `JAVA_HOME`: Ruta de instalación de Java
    - `PATH`: Debe incluir `$ORACLE_HOME/bin` y `$JAVA_HOME/bin`
@@ -16,6 +17,9 @@ Este proyecto proporciona herramientas para convertir archivos Oracle Forms bina
 Antes de usar el script, verifica que tienes todo configurado:
 
 ```bash
+# Verificar Python
+python3 --version
+
 # Verificar ORACLE_HOME
 echo $ORACLE_HOME
 # Ejemplo de salida: /opt/oracle/middleware/forms
@@ -25,6 +29,9 @@ ls -l $ORACLE_HOME/bin/frmf2xml
 
 # Verificar Java
 java -version
+
+# O usar el script de verificación automática
+python3 verify_setup.py
 ```
 
 ## Configuración de Variables de Entorno
@@ -50,18 +57,12 @@ Luego recarga el perfil:
 source ~/.bashrc
 ```
 
-## Uso del Script
-
-### Dar permisos de ejecución
-
-```bash
-chmod +x convert_fmb_to_xml.sh
-```
+## Uso del Script Python
 
 ### Convertir un archivo único
 
 ```bash
-./convert_fmb_to_xml.sh -f mi_formulario.fmb
+python3 convert_fmb_to_xml.py -f mi_formulario.fmb
 ```
 
 El archivo XML se generará en `./output/mi_formulario.xml`
@@ -69,15 +70,31 @@ El archivo XML se generará en `./output/mi_formulario.xml`
 ### Convertir todos los .fmb de un directorio
 
 ```bash
-./convert_fmb_to_xml.sh -d ./forms_directory -o ./xml_output
+python3 convert_fmb_to_xml.py -d ./forms_directory -o ./xml_output
 ```
 
 ### Opciones disponibles
+
+```bash
+python3 convert_fmb_to_xml.py --help
+```
 
 - `-f, --file <archivo.fmb>`: Convertir un archivo específico
 - `-d, --directory <directorio>`: Convertir todos los .fmb en un directorio (recursivo)
 - `-o, --output <directorio>`: Especificar directorio de salida (default: ./output)
 - `-h, --help`: Mostrar ayuda
+
+### Scripts auxiliares
+
+**Verificar configuración:**
+```bash
+python3 verify_setup.py
+```
+
+**Asistente de configuración:**
+```bash
+python3 setup_environment.py
+```
 
 ## Método Alternativo: Conversión Manual
 
@@ -103,13 +120,16 @@ frmxml2bin source.xml dest.fmb overwrite=yes
 
 ```
 proyecto/
-├── forms/              # Archivos .fmb originales
+├── forms/                    # Archivos .fmb originales
 │   ├── formulario1.fmb
 │   └── formulario2.fmb
-├── xml_output/         # XMLs generados
+├── xml_output/               # XMLs generados
 │   ├── formulario1.xml
 │   └── formulario2.xml
-├── convert_fmb_to_xml.sh
+├── convert_fmb_to_xml.py     # Script principal (Python)
+├── verify_setup.py           # Verificación (Python)
+├── setup_environment.py      # Configuración (Python)
+├── convert_fmb_to_xml.sh     # Script principal (Bash - legacy)
 └── README.md
 ```
 
