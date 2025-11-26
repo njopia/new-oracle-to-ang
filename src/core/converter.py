@@ -34,10 +34,18 @@ class Converter:
         Args:
             output_dir: Directorio donde se guardarán los XMLs
         """
+        # Obtener la ruta del directorio de trabajo actual
+        ruta_actual = Path.cwd()
+
+        print(f"La ruta actual es: {ruta_actual}")
+        print(f"Tipo de objeto: {type(ruta_actual)}")
+
+        
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        self.temp_dir = Path("./temp")
+        #self.temp_dir = Path("./temp")
+        self.temp_dir = ruta_actual / "temp"
         self.temp_dir.mkdir(parents=True, exist_ok=True)
 
         self.frmf2xml_path = self._find_frmf2xml()
@@ -107,10 +115,11 @@ class Converter:
 
                 # Copiar frmf2xml.bat al directorio temporal (para evitar problemas de rutas)
                 temp_bat = temp_path / 'frmf2xml.bat'
+                
                 shutil.copy2(self.frmf2xml_path, temp_bat)
 
                 if progress_callback:
-                    progress_callback(f"Converting {fmb_path.name}...")
+                    progress_callback(f"Converting  {fmb_path.name}...")
 
                 # Ejecutar frmf2xml.bat
                 # Comando: frmf2xml.bat archivo.fmb
@@ -121,6 +130,9 @@ class Converter:
                     text=True,
                     timeout=300  # 5 minutos timeout
                 )
+                print("Subprocess command:", [str(temp_bat), fmb_path.name])
+                print("Subprocess result:", result.stdout)
+                print("Subprocess error:", result.stderr)
 
                 # El XML se genera con el mismo nombre que el FMB pero con extensión .xml
                 xml_name = fmb_path.stem + '.xml'

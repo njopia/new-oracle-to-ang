@@ -28,23 +28,7 @@ class StepFile(ctk.CTkFrame):
     def _create_widgets(self):
         """Crea los widgets del step"""
         # Title
-        self.title_label = ctk.CTkLabel(
-            self,
-            text=i18n.t("step2.title"),
-            font=(FONTS['family'], FONTS['size_hero'], FONTS['weight_bold']),
-            text_color=COLORS['primary']
-        )
-        self.title_label.pack(pady=(SPACING['xl'], SPACING['sm']))
-
-        # Subtitle
-        self.subtitle_label = ctk.CTkLabel(
-            self,
-            text=i18n.t("step2.subtitle"),
-            font=(FONTS['family'], FONTS['size_medium']),
-            text_color=COLORS['text_secondary']
-        )
-        self.subtitle_label.pack(pady=(0, SPACING['lg']))
-
+    
         # Drop area
         self.drop_frame = ctk.CTkFrame(
             self,
@@ -193,8 +177,6 @@ class StepFile(ctk.CTkFrame):
 
     def _on_language_change(self, lang: str):
         """Actualiza los textos cuando cambia el idioma"""
-        self.title_label.configure(text=i18n.t("step2.title"))
-        self.subtitle_label.configure(text=i18n.t("step2.subtitle"))
         self.drop_label.configure(text=i18n.t("step2.drag_drop"))
         self.add_button.configure(text=i18n.t("buttons.add_files"))
         self.clear_button.configure(text=i18n.t("buttons.clear_all"))

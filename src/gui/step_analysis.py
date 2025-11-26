@@ -39,23 +39,14 @@ class StepAnalysis(ctk.CTkFrame):
     def _create_widgets(self):
         """Crea los widgets del step"""
         # Title
-        self.title_label = ctk.CTkLabel(
-            self,
-            text=i18n.t("step3.title"),
-            font=(FONTS['family'], FONTS['size_hero'], FONTS['weight_bold']),
-            text_color=COLORS['primary']
-        )
-        self.title_label.pack(pady=(SPACING['xl'], SPACING['sm']))
+      
 
-        # Subtitle
-        self.subtitle_label = ctk.CTkLabel(
+        self.log_text = ctk.CTkTextbox(
             self,
-            text=i18n.t("step3.subtitle"),
-            font=(FONTS['family'], FONTS['size_medium']),
-            text_color=COLORS['text_secondary']
+            font=(FONTS['family_mono'], FONTS['size_small']),
+            wrap="none"
         )
-        self.subtitle_label.pack(pady=(0, SPACING['lg']))
-
+        self.log_text.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['md'])
         # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
             self,
@@ -74,23 +65,6 @@ class StepAnalysis(ctk.CTkFrame):
             text_color=COLORS['text_secondary']
         )
         self.progress_label.pack()
-
-        # Log frame
-        log_label = ctk.CTkLabel(
-            self,
-            text=i18n.t("step3.conversion_log"),
-            font=(FONTS['family'], FONTS['size_large'], FONTS['weight_bold']),
-            text_color=COLORS['text_primary']
-        )
-        log_label.pack(pady=(SPACING['lg'], SPACING['sm']))
-
-        self.log_text = ctk.CTkTextbox(
-            self,
-            font=(FONTS['family_mono'], FONTS['size_small']),
-            wrap="none"
-        )
-        self.log_text.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['md'])
-
         # Buttons frame
         buttons_frame = ctk.CTkFrame(self, fg_color="transparent")
         buttons_frame.pack(pady=SPACING['lg'])
@@ -148,7 +122,7 @@ class StepAnalysis(ctk.CTkFrame):
     def _run_analysis(self):
         """Ejecuta el análisis completo"""
         total_files = len(self.files_to_convert)
-
+        self._log(f"{'converte: '}{self.converter.temp_dir}\n")
         self._log(f"{'='*60}\n")
         self._log(f"📦 {i18n.t('step3.total_files')}: {total_files}\n")
         self._log(f"{'='*60}\n\n")
@@ -177,6 +151,8 @@ class StepAnalysis(ctk.CTkFrame):
         # Fase 2: Análisis
         self._log(f"\n{'='*60}\n")
         self._log(f"📊 {i18n.t('step3.analyzing')}\n\n")
+        printTest = self.converter.frmf2xml_path
+        self._log(f"{printTest}\n")
 
         xml_files = [r.xml_file for r in self.conversion_results if r.success and r.xml_file]
         self.analysis_metrics = self.analyzer.analyze_batch(xml_files)
@@ -224,7 +200,7 @@ class StepAnalysis(ctk.CTkFrame):
         self.progress_bar.set(1.0)
         self.progress_label.configure(text=i18n.t("step3.completed"))
 
-    def _log(self, text: str, tag: str = None):
+    def _log(self, text: str, tag: str = None):  # type: ignore
         """Añade texto al log"""
         self.log_text.insert("end", text)
         self.log_text.see("end")
@@ -240,8 +216,7 @@ class StepAnalysis(ctk.CTkFrame):
 
     def _on_language_change(self, lang: str):
         """Actualiza los textos cuando cambia el idioma"""
-        self.title_label.configure(text=i18n.t("step3.title"))
-        self.subtitle_label.configure(text=i18n.t("step3.subtitle"))
+
         if not self.is_analyzing:
             self.start_button.configure(text=i18n.t("buttons.start_analysis"))
         self.report_button.configure(text=i18n.t("buttons.open_report"))

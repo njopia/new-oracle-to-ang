@@ -26,6 +26,7 @@ class MainWindow(ctk.CTk):
         self.title(i18n.t("app.title"))
         self.geometry(f"{WINDOW['default_width']}x{WINDOW['default_height']}")
         self.minsize(WINDOW['min_width'], WINDOW['min_height'])
+        self.resizable(True, True)
 
         # Configurar tema
         ctk.set_appearance_mode(config.get("ui.appearance_mode", "light"))
@@ -69,15 +70,21 @@ class MainWindow(ctk.CTk):
         # Language selector (top right)
         self.lang_selector = ctk.CTkSegmentedButton(
             header,
-            values=["Español", "English"],
-            command=self._on_language_selected,
-            fg_color=COLORS['primary_dark'],
-            selected_color=COLORS['text_white'],
-            selected_hover_color=COLORS['bg_secondary'],
-            unselected_color=COLORS['primary_dark'],
-            unselected_hover_color=COLORS['primary_light'],
-            text_color=COLORS['text_white']
-        )
+    values=["Español", "English"],
+    command=self._on_language_selected,
+    
+    # ESTILO CÁPSULA
+    corner_radius=20,  # Redondeado completo (pill shape)
+    height=32,         # Un poco más delgado se ve más elegante
+    
+    # COLORES (Usando tu diccionario COLORS)
+    fg_color=COLORS['text_secondary'],       # Fondo del contenedor (gris suave)
+    selected_color=COLORS['success'],      # El botón activo (Azul fuerte)
+    selected_hover_color=COLORS['primary_dark'],
+    unselected_color=COLORS['error_light'], # Inactivo (se funde con el fondo)
+    unselected_hover_color=COLORS['bg_tertiary'], # Feedback sutil al pasar mouse
+    text_color=COLORS['text_white']        # Texto blanco
+)
         self.lang_selector.place(relx=0.95, rely=0.5, anchor="e")
         self.lang_selector.set("Español" if self.current_language == "es" else "English")
 
@@ -90,7 +97,8 @@ class MainWindow(ctk.CTk):
         self.stepper.pack(pady=SPACING['lg'])
 
         # Content frame
-        self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.content_frame = ctk.CTkScrollableFrame(self, fg_color="transparent", orientation="vertical", scrollbar_button_color=COLORS['secondary'], 
+    scrollbar_button_hover_color=COLORS['primary'])
         self.content_frame.pack(fill="both", expand=True, padx=0, pady=0)
 
         # Create steps
