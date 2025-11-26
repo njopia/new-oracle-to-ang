@@ -1,0 +1,27 @@
+{
+  "app": {
+    "name": "Oracle Forms to Angular Migrator",
+    "version": "3.0.0",
+    "language": "es"
+  },
+  "paths": {
+    "oracle_home": "",
+    "frmf2xml_path": "",
+    "output_directory": "./output",
+    "temp_directory": "./temp",
+    "log_directory": "./logs"
+  },
+  "ui": {
+    "theme": "blue",
+    "appearance_mode": "light"
+  },
+  "conversion": {
+    "timeout_seconds": 300,
+    "batch_size": 10
+  },
+  "report": {
+    "include_charts": true,
+    "detailed_analysis": true
+  },
+  "recent_files": []
+}

@@ -1,0 +1,262 @@
+#!/usr/bin/env python3
+"""
+Verificador de prerequisitos para la migración
+Detecta Node.js, npm, Java, Oracle Home, Python
+"""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+from typing import Dict, Optional, Tuple
+from dataclasses import dataclass
+
+
+@dataclass
+class PrerequisiteCheck:
+    """Resultado de verificación de un prerequisito"""
+    name: str
+    found: bool
+    version: Optional[str] = None
+    path: Optional[str] = None
+    message: Optional[str] = None
+
+
+class Verificator:
+    """Verificador de prerequisitos"""
+
+    def __init__(self):
+        self.results: Dict[str, PrerequisiteCheck] = {}
+
+    def verify_all(self) -> Dict[str, PrerequisiteCheck]:
+        """
+        Verifica todos los prerequisitos
+
+        Returns:
+            Diccionario con resultados de todas las verificaciones
+        """
+        self.results = {
+            'nodejs': self.verify_nodejs(),
+            'npm': self.verify_npm(),
+            'java': self.verify_java(),
+            'oracle_home': self.verify_oracle_home(),
+            'frmf2xml': self.verify_frmf2xml(),
+            'python': self.verify_python()
+        }
+        return self.results
+
+    def verify_nodejs(self) -> PrerequisiteCheck:
+        """Verifica Node.js"""
+        try:
+            result = subprocess.run(
+                ['node', '--version'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            if result.returncode == 0:
+                version = result.stdout.strip()
+                # Obtener ruta
+                path_result = subprocess.run(
+                    ['where' if os.name == 'nt' else 'which', 'node'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                path = path_result.stdout.strip().split('\n')[0] if path_result.returncode == 0 else None
+
+                return PrerequisiteCheck(
+                    name='Node.js',
+                    found=True,
+                    version=version,
+                    path=path
+                )
+        except Exception as e:
+            pass
+
+        return PrerequisiteCheck(
+            name='Node.js',
+            found=False,
+            message='Node.js not found'
+        )
+
+    def verify_npm(self) -> PrerequisiteCheck:
+        """Verifica npm"""
+        try:
+            result = subprocess.run(
+                ['npm', '--version'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            if result.returncode == 0:
+                version = result.stdout.strip()
+                path_result = subprocess.run(
+                    ['where' if os.name == 'nt' else 'which', 'npm'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                path = path_result.stdout.strip().split('\n')[0] if path_result.returncode == 0 else None
+
+                return PrerequisiteCheck(
+                    name='npm',
+                    found=True,
+                    version=version,
+                    path=path
+                )
+        except Exception:
+            pass
+
+        return PrerequisiteCheck(
+            name='npm',
+            found=False,
+            message='npm not found'
+        )
+
+    def verify_java(self) -> PrerequisiteCheck:
+        """Verifica Java JDK"""
+        try:
+            result = subprocess.run(
+                ['java', '-version'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            # java -version imprime en stderr
+            if result.returncode == 0:
+                version_output = result.stderr if result.stderr else result.stdout
+                # Extraer versión (primera línea)
+                version_line = version_output.split('\n')[0]
+
+                path_result = subprocess.run(
+                    ['where' if os.name == 'nt' else 'which', 'java'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                path = path_result.stdout.strip().split('\n')[0] if path_result.returncode == 0 else None
+
+                return PrerequisiteCheck(
+                    name='Java JDK',
+                    found=True,
+                    version=version_line,
+                    path=path
+                )
+        except Exception:
+            pass
+
+        return PrerequisiteCheck(
+            name='Java JDK',
+            found=False,
+            message='Java JDK not found'
+        )
+
+    def verify_oracle_home(self) -> PrerequisiteCheck:
+        """Verifica ORACLE_HOME"""
+        oracle_home = os.environ.get('ORACLE_HOME')
+
+        if oracle_home:
+            oracle_path = Path(oracle_home)
+            if oracle_path.exists():
+                return PrerequisiteCheck(
+                    name='ORACLE_HOME',
+                    found=True,
+                    path=oracle_home,
+                    message='ORACLE_HOME configured'
+                )
+            else:
+                return PrerequisiteCheck(
+                    name='ORACLE_HOME',
+                    found=False,
+                    path=oracle_home,
+                    message='ORACLE_HOME path does not exist'
+                )
+
+        return PrerequisiteCheck(
+            name='ORACLE_HOME',
+            found=False,
+            message='ORACLE_HOME not configured (will use JAVA_HOME)'
+        )
+
+    def verify_frmf2xml(self) -> PrerequisiteCheck:
+        """Verifica frmf2xml.bat"""
+        oracle_home = os.environ.get('ORACLE_HOME')
+
+        if not oracle_home:
+            return PrerequisiteCheck(
+                name='Frmf2xml',
+                found=False,
+                message='Cannot verify: ORACLE_HOME not set'
+            )
+
+        # Rutas comunes de frmf2xml
+        possible_paths = [
+            Path(oracle_home) / 'forms' / 'templates' / 'scripts' / 'frmf2xml.bat',
+            Path(oracle_home) / 'bin' / 'frmf2xml.bat',
+            Path(oracle_home) / 'frmf2xml.bat'
+        ]
+
+        for path in possible_paths:
+            if path.exists():
+                return PrerequisiteCheck(
+                    name='Frmf2xml (Oracle Forms)',
+                    found=True,
+                    path=str(path)
+                )
+
+        return PrerequisiteCheck(
+            name='Frmf2xml (Oracle Forms)',
+            found=False,
+            message='frmf2xml.bat not found in ORACLE_HOME'
+        )
+
+    def verify_python(self) -> PrerequisiteCheck:
+        """Verifica Python"""
+        version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        python_path = sys.executable
+
+        return PrerequisiteCheck(
+            name='Python',
+            found=True,
+            version=version,
+            path=python_path
+        )
+
+    def all_required_ok(self) -> bool:
+        """
+        Verifica si todos los prerequisitos requeridos están OK
+
+        Returns:
+            True si todos los prerequisitos críticos están presentes
+        """
+        if not self.results:
+            self.verify_all()
+
+        # Los críticos son: Java, Oracle Home, frmf2xml
+        critical = ['java', 'oracle_home', 'frmf2xml']
+
+        for key in critical:
+            if key in self.results and not self.results[key].found:
+                return False
+
+        return True
+
+    def get_summary(self) -> Tuple[int, int, int]:
+        """
+        Obtiene resumen de verificación
+
+        Returns:
+            Tupla (total, encontrados, no_encontrados)
+        """
+        if not self.results:
+            self.verify_all()
+
+        total = len(self.results)
+        found = sum(1 for r in self.results.values() if r.found)
+        not_found = total - found
+
+        return (total, found, not_found)

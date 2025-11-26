@@ -1,0 +1,17 @@
+# Oracle Forms to Angular Migrator - Requirements
+
+# GUI
+customtkinter>=5.2.0
+Pillow>=10.0.0
+
+# XML Processing
+lxml>=4.9.0
+
+# HTML Report Generation
+Jinja2>=3.1.2
+
+# Utilities
+python-dateutil>=2.8.2
+
+# Optional: For better file dialogs
+tkinterdnd2>=0.3.0
