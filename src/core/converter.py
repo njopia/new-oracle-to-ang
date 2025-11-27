@@ -134,13 +134,16 @@ class Converter:
                 print("Subprocess result:", result.stdout)
                 print("Subprocess error:", result.stderr)
 
-                # El XML se genera con el mismo nombre que el FMB pero con extensión .xml
-                xml_name = fmb_path.stem + '.xml'
-                temp_xml = temp_path / xml_name
+                # Oracle Forms genera el XML con formato: nombre_fmb.xml
+                xml_name_generated = fmb_path.stem + '_fmb.xml'
+                temp_xml = temp_path / xml_name_generated
+
+                # Nombre final sin el sufijo _fmb para mejor legibilidad
+                final_xml_name = fmb_path.stem + '.xml'
 
                 if temp_xml.exists():
-                    # Mover XML al directorio de salida
-                    output_xml = self.output_dir / xml_name
+                    # Mover XML al directorio de salida con nombre limpio
+                    output_xml = self.output_dir / final_xml_name
                     shutil.move(str(temp_xml), str(output_xml))
 
                     duration = time.time() - start_time
