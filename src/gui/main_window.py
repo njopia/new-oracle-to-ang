@@ -94,15 +94,12 @@ class MainWindow(ctk.CTk):
             width=200,  # Ancho fijo para consistencia
 
             # COLORES - Alto contraste para visibilidad
-            fg_color=COLORS['bg_primary'],           # Fondo oscuro
+            fg_color=COLORS['bg_primary'],           # Fondo del contenedor
             selected_color=COLORS['text_white'],      # Botón activo blanco
             selected_hover_color=COLORS['hover'],
             unselected_color=COLORS['bg_primary'],    # Mismo color que fondo
             unselected_hover_color=COLORS['bg_tertiary'],
-            text_color=COLORS['text_white'],          # Texto blanco siempre
-            text_color_disabled=COLORS['text_secondary'],
-            border_width=2,
-            border_color=COLORS['text_white']
+            text_color=COLORS['text_white']          # Texto blanco
         )
         self.lang_selector.pack(side="left")
         self.lang_selector.set("Español" if self.current_language == "es" else "English")
