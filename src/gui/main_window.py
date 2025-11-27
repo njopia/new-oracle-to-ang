@@ -67,25 +67,44 @@ class MainWindow(ctk.CTk):
         )
         subtitle_label.pack()
 
-        # Language selector (top right)
-        self.lang_selector = ctk.CTkSegmentedButton(
+        # Language selector (top right) - Improved visibility
+        lang_frame = ctk.CTkFrame(
             header,
-    values=["Español", "English"],
-    command=self._on_language_selected,
-    
-    # ESTILO CÁPSULA
-    corner_radius=20,  # Redondeado completo (pill shape)
-    height=32,         # Un poco más delgado se ve más elegante
-    
-    # COLORES (Usando tu diccionario COLORS)
-    fg_color=COLORS['text_secondary'],       # Fondo del contenedor (gris suave)
-    selected_color=COLORS['success'],      # El botón activo (Azul fuerte)
-    selected_hover_color=COLORS['primary_dark'],
-    unselected_color=COLORS['error_light'], # Inactivo (se funde con el fondo)
-    unselected_hover_color=COLORS['bg_tertiary'], # Feedback sutil al pasar mouse
-    text_color=COLORS['text_white']        # Texto blanco
-)
-        self.lang_selector.place(relx=0.95, rely=0.5, anchor="e")
+            fg_color="transparent"
+        )
+        lang_frame.place(relx=0.98, rely=0.5, anchor="e")
+
+        # Language icon/label
+        lang_icon = ctk.CTkLabel(
+            lang_frame,
+            text="🌐",
+            font=(FONTS['family'], 20),
+            text_color=COLORS['text_white']
+        )
+        lang_icon.pack(side="left", padx=(0, SPACING['xs']))
+
+        self.lang_selector = ctk.CTkSegmentedButton(
+            lang_frame,
+            values=["Español", "English"],
+            command=self._on_language_selected,
+
+            # ESTILO MEJORADO - Más visible
+            corner_radius=CORNER_RADIUS['lg'],
+            height=40,  # Más grande para mejor visibilidad
+            width=200,  # Ancho fijo para consistencia
+
+            # COLORES - Alto contraste para visibilidad
+            fg_color=COLORS['bg_primary'],           # Fondo oscuro
+            selected_color=COLORS['text_white'],      # Botón activo blanco
+            selected_hover_color=COLORS['hover'],
+            unselected_color=COLORS['bg_primary'],    # Mismo color que fondo
+            unselected_hover_color=COLORS['bg_tertiary'],
+            text_color=COLORS['text_white'],          # Texto blanco siempre
+            text_color_disabled=COLORS['text_secondary'],
+            border_width=2,
+            border_color=COLORS['text_white']
+        )
+        self.lang_selector.pack(side="left")
         self.lang_selector.set("Español" if self.current_language == "es" else "English")
 
         # Stepper
