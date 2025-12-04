@@ -121,6 +121,9 @@ class StepAnalysis(ctk.CTkFrame):
 
     def _run_analysis(self):
         """Ejecuta el análisis completo"""
+        # Limpiar resultados anteriores
+        self.converter.clear_results()
+
         total_files = len(self.files_to_convert)
         self._log(f"{'converte: '}{self.converter.temp_dir}\n")
         self._log(f"{'='*60}\n")

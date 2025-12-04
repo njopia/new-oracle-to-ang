@@ -91,18 +91,22 @@ class Converter:
         fmb_path = Path(fmb_file)
 
         if not fmb_path.exists():
-            return ConversionResult(
+            result_obj = ConversionResult(
                 fmb_file=str(fmb_file),
                 success=False,
                 error_message="File not found"
             )
+            self.results.append(result_obj)
+            return result_obj
 
         if not self.frmf2xml_path:
-            return ConversionResult(
+            result_obj = ConversionResult(
                 fmb_file=str(fmb_file),
                 success=False,
                 error_message="frmf2xml.bat not found"
             )
+            self.results.append(result_obj)
+            return result_obj
 
         try:
             # Crear directorio temporal para esta conversión
@@ -167,40 +171,48 @@ class Converter:
                     duration = time.time() - start_time
                     print(f"✓ Conversión exitosa: {final_xml_name} ({duration:.2f}s)")
 
-                    return ConversionResult(
+                    result_obj = ConversionResult(
                         fmb_file=str(fmb_file),
                         success=True,
                         xml_file=str(output_xml),
                         duration=duration
                     )
+                    self.results.append(result_obj)
+                    return result_obj
                 else:
                     # Conversión falló
                     error_msg = result.stderr if result.stderr else "XML file not generated"
                     duration = time.time() - start_time
 
-                    return ConversionResult(
+                    result_obj = ConversionResult(
                         fmb_file=str(fmb_file),
                         success=False,
                         error_message=error_msg,
                         duration=duration
                     )
+                    self.results.append(result_obj)
+                    return result_obj
 
         except subprocess.TimeoutExpired:
             duration = time.time() - start_time
-            return ConversionResult(
+            result_obj = ConversionResult(
                 fmb_file=str(fmb_file),
                 success=False,
                 error_message="Conversion timeout (>5 minutes)",
                 duration=duration
             )
+            self.results.append(result_obj)
+            return result_obj
         except Exception as e:
             duration = time.time() - start_time
-            return ConversionResult(
+            result_obj = ConversionResult(
                 fmb_file=str(fmb_file),
                 success=False,
                 error_message=str(e),
                 duration=duration
             )
+            self.results.append(result_obj)
+            return result_obj
 
     def convert_batch(
         self,
@@ -254,6 +266,10 @@ class Converter:
 
         successful = sum(1 for r in self.results if r.success)
         return (successful / len(self.results)) * 100
+
+    def clear_results(self):
+        """Limpia los resultados de conversiones anteriores"""
+        self.results = []
 
     def cleanup_temp(self):
         """Limpia archivos temporales"""
