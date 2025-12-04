@@ -45,8 +45,8 @@ class MainWindow(ctk.CTk):
 
     def _create_widgets(self):
         """Crea los widgets de la ventana"""
-        # Header con título y selector de idioma
-        header = ctk.CTkFrame(self, fg_color=COLORS['primary'], height=120)
+        # Header con título y selector de idioma (compacto)
+        header = ctk.CTkFrame(self, fg_color=COLORS['primary'], height=70)
         header.pack(fill="x")
         header.pack_propagate(False)
 
@@ -54,16 +54,16 @@ class MainWindow(ctk.CTk):
         title_label = ctk.CTkLabel(
             header,
             text=i18n.t("app.title"),
-            font=(FONTS['family'], FONTS['size_title'], FONTS['weight_bold']),
+            font=(FONTS['family'], FONTS['size_large'], FONTS['weight_bold']),
             text_color=COLORS['text_white']
         )
-        title_label.pack(pady=(SPACING['lg'], SPACING['xs']))
+        title_label.pack(pady=(SPACING['sm'], SPACING['xs']))
 
         # Subtitle
         subtitle_label = ctk.CTkLabel(
             header,
             text=i18n.t("app.subtitle"),
-            font=(FONTS['family'], FONTS['size_medium']),
+            font=(FONTS['family'], FONTS['size_small']),
             text_color=COLORS['text_white']
         )
         subtitle_label.pack()
@@ -89,10 +89,10 @@ class MainWindow(ctk.CTk):
             values=["Español", "English"],
             command=self._on_language_selected,
 
-            # ESTILO MEJORADO - Más visible
-            corner_radius=CORNER_RADIUS['lg'],
-            height=40,  # Más grande para mejor visibilidad
-            width=200,  # Ancho fijo para consistencia
+            # ESTILO COMPACTO
+            corner_radius=CORNER_RADIUS['md'],
+            height=32,
+            width=180,
 
             # COLORES - Alto contraste para visibilidad
             fg_color=COLORS['bg_primary'],           # Fondo del contenedor
@@ -105,13 +105,13 @@ class MainWindow(ctk.CTk):
         self.lang_selector.pack(side="left")
         self.lang_selector.set("Español" if self.current_language == "es" else "English")
 
-        # Stepper
+        # Stepper (compacto)
         self.stepper = Stepper(
             self,
             steps=["prerequisites", "file", "analysis", "configuration", "generation", "completed"],
             on_step_change=self._on_step_changed
         )
-        self.stepper.pack(pady=SPACING['lg'])
+        self.stepper.pack(pady=SPACING['sm'])
 
         # Content frame
         self.content_frame = ctk.CTkScrollableFrame(self, fg_color="transparent", orientation="vertical", scrollbar_button_color=COLORS['secondary'], 
@@ -137,16 +137,16 @@ class MainWindow(ctk.CTk):
         self.step_configuration = StepConfiguration(self.content_frame)
         self.steps.append(self.step_configuration)
 
-        # Navigation buttons
+        # Navigation buttons (compactos)
         nav_frame = ctk.CTkFrame(self, fg_color="transparent")
-        nav_frame.pack(pady=SPACING['md'])
+        nav_frame.pack(pady=SPACING['sm'])
 
         self.back_button = ctk.CTkButton(
             nav_frame,
             text=i18n.t("buttons.back"),
             command=self._on_back,
-            width=120,
-            height=40,
+            width=110,
+            height=34,
             fg_color="transparent",
             border_width=2,
             border_color=COLORS['primary'],
@@ -160,8 +160,8 @@ class MainWindow(ctk.CTk):
             nav_frame,
             text=i18n.t("buttons.next"),
             command=self._on_next,
-            width=120,
-            height=40,
+            width=110,
+            height=34,
             fg_color=COLORS['primary'],
             hover_color=COLORS['primary_dark'],
             corner_radius=CORNER_RADIUS['md']

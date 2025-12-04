@@ -73,14 +73,14 @@ FONTS = {
     'weight_bold': 'bold'
 }
 
-# Espaciado
+# Espaciado (optimizado para maximizar contenido)
 SPACING = {
-    'xs': 4,
-    'sm': 8,
-    'md': 16,
-    'lg': 24,
-    'xl': 32,
-    'xxl': 48
+    'xs': 3,
+    'sm': 6,
+    'md': 10,
+    'lg': 14,
+    'xl': 18,
+    'xxl': 24
 }
 
 # Bordes redondeados
@@ -93,16 +93,16 @@ CORNER_RADIUS = {
     'round': 50
 }
 
-# Tamaños de elementos
+# Tamaños de elementos (optimizados)
 SIZES = {
-    'button_height': 36,
-    'button_width': 120,
-    'input_height': 40,
-    'stepper_circle': 40,
+    'button_height': 32,
+    'button_width': 110,
+    'input_height': 34,
+    'stepper_circle': 36,
     'stepper_line_height': 2,
     'icon_sm': 16,
-    'icon_md': 24,
-    'icon_lg': 32
+    'icon_md': 20,
+    'icon_lg': 28
 }
 
 # Opacidades
