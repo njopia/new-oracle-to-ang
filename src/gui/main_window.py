@@ -14,6 +14,7 @@ from .stepper import Stepper
 from .step_prerequisites import StepPrerequisites
 from .step_file import StepFile
 from .step_analysis import StepAnalysis
+from .step_configuration import StepConfiguration
 
 
 class MainWindow(ctk.CTk):
@@ -132,6 +133,10 @@ class MainWindow(ctk.CTk):
         self.step_analysis = StepAnalysis(self.content_frame)
         self.steps.append(self.step_analysis)
 
+        # Step 4: Configuration
+        self.step_configuration = StepConfiguration(self.content_frame)
+        self.steps.append(self.step_configuration)
+
         # Navigation buttons
         nav_frame = ctk.CTkFrame(self, fg_color="transparent")
         nav_frame.pack(pady=SPACING['md'])
@@ -210,6 +215,16 @@ class MainWindow(ctk.CTk):
                 files = self.step_file.get_selected_files()
                 self.step_analysis.set_files(files)
 
+            # Si es el step de análisis, pasar los archivos XML al step de configuración
+            if current_step == 2:  # Step Analysis
+                # Obtener archivos XML generados exitosamente
+                xml_files = [
+                    result.xml_file
+                    for result in self.step_analysis.conversion_results
+                    if result.success and result.xml_file
+                ]
+                self.step_configuration.set_analyzed_files(xml_files)
+
         self.stepper.next_step()
 
     def _get_step_warning_message(self, step_index: int) -> str:
@@ -220,6 +235,8 @@ class MainWindow(ctk.CTk):
             return i18n.t("errors.no_files_selected")
         elif step_index == 2:
             return "Please complete the analysis first"
+        elif step_index == 3:
+            return "Please configure the project settings and select at least one component"
         return "Please complete the current step"
 
     def _on_language_selected(self, value: str):

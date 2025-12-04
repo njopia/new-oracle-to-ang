@@ -72,6 +72,27 @@
     "failed": "Failed",
     "report_generated": "HTML report generated successfully"
   },
+  "step4": {
+    "title": "Generation Configuration",
+    "subtitle": "Configure how Angular code will be generated",
+    "project_config": "Project Configuration",
+    "generation_options": "Generation Options",
+    "select_components": "Select Components to Migrate",
+    "project_name": "Project Name",
+    "component_prefix": "Component Prefix",
+    "style_extension": "Style Extension",
+    "naming_convention": "Naming Convention",
+    "folder_structure": "Folder Structure",
+    "routing": "Enable Routing",
+    "standalone": "Standalone Components (Angular 14+)",
+    "generate_tests": "Generate Unit Tests",
+    "generate_docs": "Generate Documentation",
+    "generate_services": "Generate Services",
+    "generate_guards": "Generate Route Guards",
+    "select_all": "All",
+    "select_none": "None",
+    "no_files_analyzed": "No files analyzed yet. Complete Step 3 first."
+  },
   "report": {
     "title": "Analysis Report - Oracle Forms",
     "summary": "Executive Summary",
