@@ -130,9 +130,27 @@ class Converter:
                     text=True,
                     timeout=300  # 5 minutos timeout
                 )
-                print("Subprocess command:", [str(temp_bat), fmb_path.name])
-                print("Subprocess result:", result.stdout)
-                print("Subprocess error:", result.stderr)
+                # Filtrar warnings no críticos de Oracle Forms
+                # Estos son warnings comunes que no afectan la conversión
+                oracle_warnings = [
+                    "ERROR El secundario del grupo de objetos",
+                    "La imagen IMAGE",
+                    "se ha guardado como"
+                ]
+
+                # Solo mostrar errores críticos (no warnings esperados)
+                if result.stderr:
+                    critical_errors = []
+                    for line in result.stderr.split('\n'):
+                        # Ignorar warnings conocidos de Oracle Forms
+                        if not any(warning in line for warning in oracle_warnings):
+                            if line.strip() and 'ERROR' in line.upper():
+                                critical_errors.append(line)
+
+                    if critical_errors:
+                        print("Errores críticos detectados:")
+                        for error in critical_errors:
+                            print(f"  - {error}")
 
                 # Oracle Forms genera el XML con formato: nombre_fmb.xml
                 xml_name_generated = fmb_path.stem + '_fmb.xml'
@@ -147,6 +165,7 @@ class Converter:
                     shutil.move(str(temp_xml), str(output_xml))
 
                     duration = time.time() - start_time
+                    print(f"✓ Conversión exitosa: {final_xml_name} ({duration:.2f}s)")
 
                     return ConversionResult(
                         fmb_file=str(fmb_file),
