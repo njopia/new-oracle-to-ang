@@ -32,34 +32,34 @@ class StepPrerequisites(ctk.CTkFrame):
     def _create_widgets(self):
         """Crea los widgets del step"""
 
-        # Results frame
+        # Results frame (compacto)
         self.results_frame = ctk.CTkFrame(
             self,
             fg_color=COLORS['bg_primary'],
-            corner_radius=CORNER_RADIUS['lg']
+            corner_radius=CORNER_RADIUS['md']
         )
-        self.results_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['md'])
+        self.results_frame.pack(fill="both", expand=True, padx=SPACING['md'], pady=SPACING['sm'])
 
-        # Results text area
+        # Results text area (compacto)
         self.results_text = ctk.CTkTextbox(
             self.results_frame,
-            font=(FONTS['family_mono'], FONTS['size_normal']),
+            font=(FONTS['family_mono'], FONTS['size_small']),
             wrap="none"
         )
-        self.results_text.pack(fill="both", expand=True, padx=SPACING['md'], pady=SPACING['md'])
+        self.results_text.pack(fill="both", expand=True, padx=SPACING['sm'], pady=SPACING['sm'])
 
-        # Verify button
+        # Verify button (compacto)
         self.verify_button = ctk.CTkButton(
             self,
             text=i18n.t("buttons.verify"),
             command=self._on_verify_clicked,
-            height=40,
-            font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
+            height=36,
+            font=(FONTS['family'], FONTS['size_normal'], FONTS['weight_bold']),
             fg_color=COLORS['primary'],
             hover_color=COLORS['primary_dark'],
             corner_radius=CORNER_RADIUS['md']
         )
-        self.verify_button.pack(pady=SPACING['lg'])
+        self.verify_button.pack(pady=SPACING['sm'])
 
     def _on_verify_clicked(self):
         """Maneja el click del botón verificar"""

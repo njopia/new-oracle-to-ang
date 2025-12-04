@@ -39,43 +39,43 @@ class StepAnalysis(ctk.CTkFrame):
 
     def _create_widgets(self):
         """Crea los widgets del step"""
-        # Title
-      
-
+        # Log de conversión (oculto inicialmente)
         self.log_text = ctk.CTkTextbox(
             self,
             font=(FONTS['family_mono'], FONTS['size_small']),
             wrap="none"
         )
-        self.log_text.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['md'])
-        # Progress bar
+        # NO hacer pack todavía - se muestra al iniciar análisis
+
+        # Progress bar (oculta inicialmente)
         self.progress_bar = ctk.CTkProgressBar(
             self,
             width=400,
-            height=20,
+            height=18,
             corner_radius=CORNER_RADIUS['md']
         )
-        self.progress_bar.pack(pady=SPACING['md'])
         self.progress_bar.set(0)
+        # NO hacer pack todavía
 
-        # Progress label
+        # Progress label (oculta inicialmente)
         self.progress_label = ctk.CTkLabel(
             self,
             text="",
-            font=(FONTS['family'], FONTS['size_normal']),
+            font=(FONTS['family'], FONTS['size_small']),
             text_color=COLORS['text_secondary']
         )
-        self.progress_label.pack()
-        # Buttons frame
+        # NO hacer pack todavía
+
+        # Buttons frame - SOLO botón verde visible al inicio
         buttons_frame = ctk.CTkFrame(self, fg_color="transparent")
-        buttons_frame.pack(pady=SPACING['lg'])
+        buttons_frame.pack(expand=True)  # Centrado vertical
 
         self.start_button = ctk.CTkButton(
             buttons_frame,
             text=i18n.t("buttons.start_analysis"),
             command=self._on_start_analysis,
-            height=40,
-            width=180,
+            height=38,
+            width=200,
             font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
             fg_color=COLORS['success'],
             hover_color=COLORS['success_light'],
@@ -87,7 +87,7 @@ class StepAnalysis(ctk.CTkFrame):
             buttons_frame,
             text=i18n.t("buttons.open_report"),
             command=self._on_open_report,
-            height=40,
+            height=38,
             width=180,
             font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
             fg_color=COLORS['primary'],
@@ -95,7 +95,7 @@ class StepAnalysis(ctk.CTkFrame):
             corner_radius=CORNER_RADIUS['md'],
             state="disabled"
         )
-        self.report_button.pack(side="left", padx=SPACING['sm'])
+        # NO hacer pack todavía - se muestra al completar análisis
 
     def set_files(self, files: List[str]):
         """Establece los archivos a convertir"""
@@ -109,6 +109,11 @@ class StepAnalysis(ctk.CTkFrame):
 
         if self.is_analyzing:
             return
+
+        # Mostrar elementos ocultos al iniciar análisis
+        self.log_text.pack(fill="both", expand=True, padx=SPACING['md'], pady=SPACING['sm'])
+        self.progress_bar.pack(pady=SPACING['sm'])
+        self.progress_label.pack()
 
         self.is_analyzing = True
         self.start_button.configure(state="disabled")
@@ -196,7 +201,8 @@ class StepAnalysis(ctk.CTkFrame):
         self._log(f"{i18n.t('step3.failed')}: {failed}\n")
         self._log(f"{i18n.t('step3.success_rate')}: {success_rate:.2f}%\n")
 
-        # Habilitar botón de reporte
+        # Mostrar y habilitar botón de reporte
+        self.report_button.pack(side="left", padx=SPACING['sm'])
         self.report_button.configure(state="normal")
         self.start_button.configure(state="normal")
         self.is_analyzing = False
