@@ -8,6 +8,7 @@ import threading
 import webbrowser
 from pathlib import Path
 from typing import List
+from datetime import datetime
 
 from ..assets.styles import COLORS, FONTS, SPACING, CORNER_RADIUS
 from ..utils.i18n import i18n
@@ -22,9 +23,11 @@ class StepAnalysis(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, fg_color=COLORS['bg_secondary'], **kwargs)
 
-        self.converter = Converter()
+        # Estos se crearán con timestamp cuando inicie el análisis
+        self.converter = None
         self.analyzer = Analyzer()
-        self.report_generator = ReportGenerator()
+        self.report_generator = None
+        self.current_output_dir = None
 
         self.files_to_convert: List[str] = []
         self.conversion_results = []
@@ -110,6 +113,15 @@ class StepAnalysis(ctk.CTkFrame):
         if self.is_analyzing:
             return
 
+        # Crear directorio con timestamp para este análisis
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.current_output_dir = Path(f"./output/analisis_{timestamp}")
+        self.current_output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Inicializar Converter y ReportGenerator con el directorio timestamped
+        self.converter = Converter(output_dir=str(self.current_output_dir))
+        self.report_generator = ReportGenerator(output_dir=str(self.current_output_dir))
+
         # Mostrar elementos ocultos al iniciar análisis
         self.log_text.pack(fill="both", expand=True, padx=SPACING['md'], pady=SPACING['sm'])
         self.progress_bar.pack(pady=SPACING['sm'])
@@ -131,7 +143,7 @@ class StepAnalysis(ctk.CTkFrame):
         self.converter.clear_results()
 
         total_files = len(self.files_to_convert)
-        self._log(f"{'converte: '}{self.converter.temp_dir}\n")
+        self._log(f"📁 Output: {self.current_output_dir}\n")
         self._log(f"{'='*60}\n")
         self._log(f"📦 {i18n.t('step3.total_files')}: {total_files}\n")
         self._log(f"{'='*60}\n\n")
