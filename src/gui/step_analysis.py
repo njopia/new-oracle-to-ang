@@ -6,6 +6,7 @@ Step 3: Análisis y Conversión
 import customtkinter as ctk
 import threading
 import webbrowser
+from pathlib import Path
 from typing import List
 
 from ..assets.styles import COLORS, FONTS, SPACING, CORNER_RADIUS
@@ -211,7 +212,10 @@ class StepAnalysis(ctk.CTkFrame):
     def _on_open_report(self):
         """Abre el reporte HTML en el navegador"""
         if self.report_path:
-            webbrowser.open(f"file://{self.report_path}")
+            # Convertir a Path absoluta y luego a URI para compatibilidad con Windows
+            report_file = Path(self.report_path).resolve()
+            file_uri = report_file.as_uri()
+            webbrowser.open(file_uri)
 
     def is_ready(self) -> bool:
         """Verifica si el análisis está completo"""
