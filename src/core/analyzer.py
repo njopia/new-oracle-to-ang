@@ -60,17 +60,18 @@ class Analyzer:
                 xml_path=str(xml_path)
             )
 
-            # Contar elementos principales
-            metrics.blocks = len(root.xpath(".//Block"))
-            metrics.items = len(root.xpath(".//Item"))
-            metrics.triggers = len(root.xpath(".//Trigger"))
-            metrics.lovs = len(root.xpath(".//LOV"))
-            metrics.canvas = len(root.xpath(".//Canvas"))
-            metrics.windows = len(root.xpath(".//Window"))
-            metrics.program_units = len(root.xpath(".//ProgramUnit"))
-            metrics.alerts = len(root.xpath(".//Alert"))
-            metrics.record_groups = len(root.xpath(".//RecordGroup"))
-            metrics.parameters = len(root.xpath(".//FormParameter"))
+            # Detectar namespace (Oracle Forms usa xmlns="http://xmlns.oracle.com/Forms")
+            # Usar local-name() para ignorar namespaces
+            metrics.blocks = len(root.xpath(".//*[local-name()='Block']"))
+            metrics.items = len(root.xpath(".//*[local-name()='Item']"))
+            metrics.triggers = len(root.xpath(".//*[local-name()='Trigger']"))
+            metrics.lovs = len(root.xpath(".//*[local-name()='LOV']"))
+            metrics.canvas = len(root.xpath(".//*[local-name()='Canvas']"))
+            metrics.windows = len(root.xpath(".//*[local-name()='Window']"))
+            metrics.program_units = len(root.xpath(".//*[local-name()='ProgramUnit']"))
+            metrics.alerts = len(root.xpath(".//*[local-name()='Alert']"))
+            metrics.record_groups = len(root.xpath(".//*[local-name()='RecordGroup']"))
+            metrics.parameters = len(root.xpath(".//*[local-name()='FormParameter']"))
 
             # Extraer detalles adicionales
             metrics.details = self._extract_details(root)
@@ -90,16 +91,16 @@ class Analyzer:
         details = {}
 
         try:
-            # Información del módulo
-            module = root.find(".//Module")
-            if module is not None:
-                details['module_name'] = module.get('Name', 'Unknown')
+            # Información del módulo (usar local-name para ignorar namespace)
+            module = root.xpath(".//*[local-name()='FormModule']")
+            if module:
+                details['module_name'] = module[0].get('Name', 'Unknown')
 
             # Bloques con sus items
             blocks_info = []
-            for block in root.xpath(".//Block"):
+            for block in root.xpath(".//*[local-name()='Block']"):
                 block_name = block.get('Name', 'Unknown')
-                items_in_block = len(block.xpath(".//Item"))
+                items_in_block = len(block.xpath(".//*[local-name()='Item']"))
                 blocks_info.append({
                     'name': block_name,
                     'items': items_in_block
@@ -108,17 +109,17 @@ class Analyzer:
 
             # Triggers por tipo
             trigger_types = {}
-            for trigger in root.xpath(".//Trigger"):
+            for trigger in root.xpath(".//*[local-name()='Trigger']"):
                 trigger_name = trigger.get('Name', 'Unknown')
                 trigger_types[trigger_name] = trigger_types.get(trigger_name, 0) + 1
             details['trigger_types'] = trigger_types
 
             # LOVs
-            lov_names = [lov.get('Name', 'Unknown') for lov in root.xpath(".//LOV")]
+            lov_names = [lov.get('Name', 'Unknown') for lov in root.xpath(".//*[local-name()='LOV']")]
             details['lov_names'] = lov_names
 
             # Program Units
-            program_unit_names = [pu.get('Name', 'Unknown') for pu in root.xpath(".//ProgramUnit")]
+            program_unit_names = [pu.get('Name', 'Unknown') for pu in root.xpath(".//*[local-name()='ProgramUnit']")]
             details['program_unit_names'] = program_unit_names
 
         except Exception as e:
