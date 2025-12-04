@@ -73,14 +73,14 @@ FONTS = {
     'weight_bold': 'bold'
 }
 
-# Espaciado (optimizado para maximizar contenido)
+# Espaciado (ultra compacto para maximizar contenido)
 SPACING = {
-    'xs': 3,
-    'sm': 6,
-    'md': 10,
-    'lg': 14,
-    'xl': 18,
-    'xxl': 24
+    'xs': 2,
+    'sm': 4,
+    'md': 8,
+    'lg': 10,
+    'xl': 12,
+    'xxl': 16
 }
 
 # Bordes redondeados

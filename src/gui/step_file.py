@@ -27,21 +27,21 @@ class StepFile(ctk.CTkFrame):
 
     def _create_widgets(self):
         """Crea los widgets del step"""
-        # Drop area (compacta)
+        # Drop area (ultra compacta)
         self.drop_frame = ctk.CTkFrame(
             self,
             fg_color=COLORS['bg_primary'],
             border_width=2,
             border_color=COLORS['primary'],
             corner_radius=CORNER_RADIUS['md'],
-            height=120
+            height=100
         )
-        self.drop_frame.pack(fill="x", padx=SPACING['md'], pady=SPACING['sm'])
+        self.drop_frame.pack(fill="x", padx=SPACING['md'], pady=SPACING['xs'])
 
         self.drop_label = ctk.CTkLabel(
             self.drop_frame,
             text=i18n.t("step2.drag_drop"),
-            font=(FONTS['family'], FONTS['size_normal']),
+            font=(FONTS['family'], FONTS['size_small']),
             text_color=COLORS['text_secondary']
         )
         self.drop_label.place(relx=0.5, rely=0.5, anchor="center")
@@ -50,15 +50,15 @@ class StepFile(ctk.CTkFrame):
         self.drop_frame.bind("<Button-1>", lambda e: self._on_add_files())
         self.drop_label.bind("<Button-1>", lambda e: self._on_add_files())
 
-        # Buttons frame (compacto)
+        # Buttons frame (ultra compacto)
         buttons_frame = ctk.CTkFrame(self, fg_color="transparent")
-        buttons_frame.pack(pady=SPACING['sm'])
+        buttons_frame.pack(pady=SPACING['xs'])
 
         self.add_button = ctk.CTkButton(
             buttons_frame,
             text=i18n.t("buttons.add_files"),
             command=self._on_add_files,
-            height=34,
+            height=32,
             fg_color=COLORS['primary'],
             hover_color=COLORS['primary_dark'],
             corner_radius=CORNER_RADIUS['md']
@@ -69,28 +69,28 @@ class StepFile(ctk.CTkFrame):
             buttons_frame,
             text=i18n.t("buttons.clear_all"),
             command=self._on_clear_all,
-            height=34,
+            height=32,
             fg_color=COLORS['error'],
             hover_color=COLORS['error_light'],
             corner_radius=CORNER_RADIUS['md']
         )
         self.clear_button.pack(side="left", padx=SPACING['sm'])
 
-        # Files list frame (compacto)
+        # Files list frame (ultra compacto)
         files_label = ctk.CTkLabel(
             self,
             text=i18n.t("step2.selected_files"),
-            font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
+            font=(FONTS['family'], FONTS['size_small'], FONTS['weight_bold']),
             text_color=COLORS['text_primary']
         )
-        files_label.pack(pady=(SPACING['sm'], SPACING['xs']))
+        files_label.pack(pady=SPACING['xs'])
 
         self.files_frame = ctk.CTkScrollableFrame(
             self,
             fg_color=COLORS['bg_primary'],
             corner_radius=CORNER_RADIUS['md']
         )
-        self.files_frame.pack(fill="both", expand=True, padx=SPACING['md'], pady=SPACING['sm'])
+        self.files_frame.pack(fill="both", expand=True, padx=SPACING['md'], pady=SPACING['xs'])
 
         self._update_files_list()
 

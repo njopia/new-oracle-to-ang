@@ -45,28 +45,20 @@ class MainWindow(ctk.CTk):
 
     def _create_widgets(self):
         """Crea los widgets de la ventana"""
-        # Header con título y selector de idioma (compacto)
-        header = ctk.CTkFrame(self, fg_color=COLORS['primary'], height=70)
+        # Header ultra compacto
+        header = ctk.CTkFrame(self, fg_color=COLORS['primary'], height=50)
         header.pack(fill="x")
         header.pack_propagate(False)
 
-        # Title
+        # Title y subtitle en una línea
+        title_text = f"{i18n.t('app.title')} - {i18n.t('app.subtitle')}"
         title_label = ctk.CTkLabel(
             header,
-            text=i18n.t("app.title"),
-            font=(FONTS['family'], FONTS['size_large'], FONTS['weight_bold']),
+            text=title_text,
+            font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
             text_color=COLORS['text_white']
         )
-        title_label.pack(pady=(SPACING['sm'], SPACING['xs']))
-
-        # Subtitle
-        subtitle_label = ctk.CTkLabel(
-            header,
-            text=i18n.t("app.subtitle"),
-            font=(FONTS['family'], FONTS['size_small']),
-            text_color=COLORS['text_white']
-        )
-        subtitle_label.pack()
+        title_label.pack(pady=SPACING['sm'])
 
         # Language selector (top right) - Improved visibility
         lang_frame = ctk.CTkFrame(
@@ -79,20 +71,20 @@ class MainWindow(ctk.CTk):
         lang_icon = ctk.CTkLabel(
             lang_frame,
             text="🌐",
-            font=(FONTS['family'], 20),
+            font=(FONTS['family'], 16),
             text_color=COLORS['text_white']
         )
         lang_icon.pack(side="left", padx=(0, SPACING['xs']))
 
         self.lang_selector = ctk.CTkSegmentedButton(
             lang_frame,
-            values=["Español", "English"],
+            values=["ES", "EN"],
             command=self._on_language_selected,
 
-            # ESTILO COMPACTO
-            corner_radius=CORNER_RADIUS['md'],
-            height=32,
-            width=180,
+            # ESTILO ULTRA COMPACTO
+            corner_radius=CORNER_RADIUS['sm'],
+            height=28,
+            width=100,
 
             # COLORES - Alto contraste para visibilidad
             fg_color=COLORS['bg_primary'],           # Fondo del contenedor
@@ -103,15 +95,15 @@ class MainWindow(ctk.CTk):
             text_color=COLORS['text_white']          # Texto blanco
         )
         self.lang_selector.pack(side="left")
-        self.lang_selector.set("Español" if self.current_language == "es" else "English")
+        self.lang_selector.set("ES" if self.current_language == "es" else "EN")
 
-        # Stepper (compacto)
+        # Stepper ultra compacto
         self.stepper = Stepper(
             self,
             steps=["prerequisites", "file", "analysis", "configuration", "generation", "completed"],
             on_step_change=self._on_step_changed
         )
-        self.stepper.pack(pady=SPACING['sm'])
+        self.stepper.pack(pady=SPACING['xs'])
 
         # Content frame
         self.content_frame = ctk.CTkScrollableFrame(self, fg_color="transparent", orientation="vertical", scrollbar_button_color=COLORS['secondary'], 
@@ -137,9 +129,9 @@ class MainWindow(ctk.CTk):
         self.step_configuration = StepConfiguration(self.content_frame)
         self.steps.append(self.step_configuration)
 
-        # Navigation buttons (compactos)
+        # Navigation buttons (ultra compactos)
         nav_frame = ctk.CTkFrame(self, fg_color="transparent")
-        nav_frame.pack(pady=SPACING['sm'])
+        nav_frame.pack(pady=SPACING['xs'])
 
         self.back_button = ctk.CTkButton(
             nav_frame,
@@ -241,7 +233,7 @@ class MainWindow(ctk.CTk):
 
     def _on_language_selected(self, value: str):
         """Maneja el cambio de idioma"""
-        new_lang = "es" if value == "Español" else "en"
+        new_lang = "es" if value == "ES" else "en"
         if new_lang != self.current_language:
             self.current_language = new_lang
             i18n.set_language(new_lang)

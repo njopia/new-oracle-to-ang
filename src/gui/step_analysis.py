@@ -54,7 +54,7 @@ class StepAnalysis(ctk.CTkFrame):
         self.progress_bar = ctk.CTkProgressBar(
             self,
             width=400,
-            height=18,
+            height=16,
             corner_radius=CORNER_RADIUS['md']
         )
         self.progress_bar.set(0)
@@ -70,15 +70,15 @@ class StepAnalysis(ctk.CTkFrame):
         # NO hacer pack todavía
 
         # Buttons frame - SOLO botón verde visible al inicio
-        buttons_frame = ctk.CTkFrame(self, fg_color="transparent")
-        buttons_frame.pack(expand=True)  # Centrado vertical
+        self.buttons_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.buttons_frame.pack(expand=True)  # Centrado vertical
 
         self.start_button = ctk.CTkButton(
-            buttons_frame,
+            self.buttons_frame,
             text=i18n.t("buttons.start_analysis"),
             command=self._on_start_analysis,
-            height=38,
-            width=200,
+            height=36,
+            width=180,
             font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
             fg_color=COLORS['success'],
             hover_color=COLORS['success_light'],
@@ -87,11 +87,11 @@ class StepAnalysis(ctk.CTkFrame):
         self.start_button.pack(side="left", padx=SPACING['sm'])
 
         self.report_button = ctk.CTkButton(
-            buttons_frame,
+            self.buttons_frame,
             text=i18n.t("buttons.open_report"),
             command=self._on_open_report,
-            height=38,
-            width=180,
+            height=36,
+            width=160,
             font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
             fg_color=COLORS['primary'],
             hover_color=COLORS['primary_dark'],
@@ -122,10 +122,16 @@ class StepAnalysis(ctk.CTkFrame):
         self.converter = Converter(output_dir=str(self.current_output_dir))
         self.report_generator = ReportGenerator(output_dir=str(self.current_output_dir))
 
-        # Mostrar elementos ocultos al iniciar análisis
-        self.log_text.pack(fill="both", expand=True, padx=SPACING['md'], pady=SPACING['sm'])
-        self.progress_bar.pack(pady=SPACING['sm'])
-        self.progress_label.pack()
+        # Reconfigurar layout: quitar centrado de botones y mostrar elementos
+        self.buttons_frame.pack_forget()
+
+        # Mostrar elementos de análisis
+        self.log_text.pack(fill="both", expand=True, padx=SPACING['md'], pady=(SPACING['sm'], SPACING['xs']))
+        self.progress_bar.pack(pady=SPACING['xs'])
+        self.progress_label.pack(pady=SPACING['xs'])
+
+        # Reposicionar botones abajo sin expand
+        self.buttons_frame.pack(pady=SPACING['sm'])
 
         self.is_analyzing = True
         self.start_button.configure(state="disabled")
