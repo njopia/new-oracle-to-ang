@@ -105,9 +105,16 @@ class MainWindow(ctk.CTk):
         )
         self.stepper.pack(pady=SPACING['xs'])
 
-        # Navigation buttons ARRIBA (después del stepper, antes del contenido)
+        # Content frame (ahora ocupa TODO el espacio restante - SIN SCROLL)
+        self.content_frame = ctk.CTkFrame(
+            self,
+            fg_color="transparent"
+        )
+        self.content_frame.pack(fill="both", expand=True, padx=0, pady=0)
+
+        # Navigation buttons ABAJO (después del contenido)
         nav_frame = ctk.CTkFrame(self, fg_color="transparent")
-        nav_frame.pack(pady=(0, SPACING['xs']))
+        nav_frame.pack(pady=SPACING['xs'])
 
         self.back_button = ctk.CTkButton(
             nav_frame,
@@ -137,13 +144,6 @@ class MainWindow(ctk.CTk):
             font=(FONTS['family'], FONTS['size_small'])
         )
         self.next_button.pack(side="left", padx=SPACING['sm'])
-
-        # Content frame (ahora ocupa TODO el espacio restante - SIN SCROLL)
-        self.content_frame = ctk.CTkFrame(
-            self,
-            fg_color="transparent"
-        )
-        self.content_frame.pack(fill="both", expand=True, padx=0, pady=0)
 
         # Create steps
         self.steps = []
