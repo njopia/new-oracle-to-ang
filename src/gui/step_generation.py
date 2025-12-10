@@ -13,6 +13,7 @@ from typing import Dict, Any, List
 
 from ..assets.styles import COLORS, FONTS, SPACING, CORNER_RADIUS
 from ..utils.i18n import i18n
+from ..core.generators import AngularProjectGenerator, ComponentsOnlyGenerator
 
 
 class StepGeneration(ctk.CTkFrame):
@@ -124,138 +125,47 @@ class StepGeneration(ctk.CTkFrame):
             # Determinar modo de generación
             generation_mode = self.configuration.get('generation_mode', 'complete_project')
 
+            # Crear directorio de salida con timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+
             if generation_mode == 'complete_project':
-                self._generate_complete_project()
+                self.output_dir = str(Path(f"./output/proyecto_{timestamp}"))
+                generator = AngularProjectGenerator(self.configuration, self.xml_files)
             else:
-                self._generate_components_only()
+                self.output_dir = str(Path(f"./output/componentes_{timestamp}"))
+                generator = ComponentsOnlyGenerator(self.configuration, self.xml_files)
 
-            # Generación completada
-            self._append_log(f"\n{'='*60}\n")
-            self._append_log(f"✓ {i18n.t('step5.success')}\n", "success")
-            self._append_log(f"{'='*60}\n")
+            # Configurar callbacks
+            generator.set_log_callback(self._append_log)
+            generator.set_progress_callback(self._update_progress)
 
-            self.generation_complete = True
+            # Ejecutar generación
+            result = generator.generate(self.output_dir)
+
+            if result.success:
+                self._append_log(f"\n{'='*60}\n")
+                self._append_log(f"✓ {i18n.t('step5.success')}\n")
+                self._append_log(f"📁 Directorio: {result.output_dir}\n")
+                self._append_log(f"📄 Archivos generados: {len(result.files_generated)}\n")
+                self._append_log(f"{'='*60}\n")
+                self.generation_complete = True
+                # Actualizar output_dir con el real del generador
+                self.output_dir = result.output_dir
+            else:
+                self._append_log(f"\n{'='*60}\n")
+                self._append_log(f"✗ Error: {result.error_message}\n")
+                self._append_log(f"{'='*60}\n")
+                self.generation_complete = False
 
         except Exception as e:
-            self._append_log(f"\n✗ Error: {str(e)}\n", "error")
+            self._append_log(f"\n✗ Error: {str(e)}\n")
+            import traceback
+            self._append_log(f"{traceback.format_exc()}\n")
             self.generation_complete = False
         finally:
             # Detener progress bar
             self.progress_bar.stop()
             self.progress_label.configure(text=i18n.t("step5.completed"))
-
-    def _generate_complete_project(self):
-        """Genera un proyecto Angular completo"""
-        project_name = self.configuration.get('project_name', 'angular-app')
-        style_ext = self.configuration.get('style_extension', 'scss')
-        routing = self.configuration.get('routing', True)
-
-        # Crear directorio de salida con timestamp
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        self.output_dir = str(Path(f"./output/proyecto_{timestamp}"))
-        os.makedirs(self.output_dir, exist_ok=True)
-
-        self._append_log(f"📁 Directorio de salida: {self.output_dir}\n\n")
-
-        # 1. Crear proyecto Angular
-        self._update_progress(i18n.t("step5.creating_project"))
-        self._append_log(f"🚀 {i18n.t('step5.creating_project')}\n")
-
-        # Aquí iría la llamada a ng new (simulado por ahora)
-        self._append_log(f"   Ejecutando: ng new {project_name} --style={style_ext} " +
-                        f"--routing={'true' if routing else 'false'} --skip-git\n")
-        self._append_log(f"   ✓ Proyecto base creado\n\n")
-
-        # 2. Generar componentes
-        self._generate_components()
-
-        # 3. Generar servicios
-        if self.configuration.get('generate_services', True):
-            self._generate_services()
-
-        # 4. Configurar routing
-        if routing:
-            self._configure_routing()
-
-        # 5. Generar tests
-        if self.configuration.get('generate_tests', True):
-            self._append_log(f"🧪 Generando tests unitarios...\n")
-            self._append_log(f"   ✓ Tests generados\n\n")
-
-        # 6. Generar documentación
-        if self.configuration.get('generate_docs', True):
-            self._append_log(f"📚 Generando documentación...\n")
-            self._append_log(f"   ✓ Documentación generada\n\n")
-
-    def _generate_components_only(self):
-        """Genera solo componentes sin estructura de proyecto"""
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        self.output_dir = str(Path(f"./output/componentes_{timestamp}"))
-        os.makedirs(self.output_dir, exist_ok=True)
-
-        self._append_log(f"📁 Directorio de salida: {self.output_dir}\n\n")
-        self._append_log(f"ℹ️  Modo: Solo Componentes\n")
-        self._append_log(f"   Los archivos generados deben integrarse manualmente en tu proyecto.\n\n")
-
-        # Generar estructura de carpetas
-        folders = ['components', 'services', 'models', 'interfaces']
-        for folder in folders:
-            folder_path = Path(self.output_dir) / folder
-            folder_path.mkdir(exist_ok=True)
-            self._append_log(f"   ✓ Carpeta creada: {folder}/\n")
-
-        self._append_log("\n")
-
-        # Generar componentes
-        self._generate_components()
-
-        # Generar servicios si está habilitado
-        if self.configuration.get('generate_services', True):
-            self._generate_services()
-
-    def _generate_components(self):
-        """Genera los componentes Angular"""
-        self._update_progress(i18n.t("step5.generating_components"))
-        self._append_log(f"🎨 {i18n.t('step5.generating_components')}\n")
-
-        selected_files = self.configuration.get('selected_files', [])
-        naming = self.configuration.get('naming_convention', 'kebab-case')
-        standalone = self.configuration.get('standalone', False)
-        prefix = self.configuration.get('component_prefix', 'app')
-
-        for xml_file in selected_files:
-            component_name = Path(xml_file).stem
-            # Convertir nombre según convención
-            if naming == 'kebab-case':
-                component_name = component_name.lower().replace('_', '-')
-
-            self._append_log(f"   → Generando: {component_name}\n")
-            self._append_log(f"      • {component_name}.component.ts\n")
-            self._append_log(f"      • {component_name}.component.html\n")
-            self._append_log(f"      • {component_name}.component.{self.configuration.get('style_extension', 'scss')}\n")
-
-            if self.configuration.get('generate_tests', True):
-                self._append_log(f"      • {component_name}.component.spec.ts\n")
-
-        self._append_log(f"   ✓ {len(selected_files)} componentes generados\n\n")
-
-    def _generate_services(self):
-        """Genera los servicios Angular"""
-        self._update_progress(i18n.t("step5.generating_services"))
-        self._append_log(f"⚙️  {i18n.t('step5.generating_services')}\n")
-
-        self._append_log(f"   → Generando servicio de datos\n")
-        self._append_log(f"   → Generando servicio de API\n")
-        self._append_log(f"   ✓ Servicios generados\n\n")
-
-    def _configure_routing(self):
-        """Configura el routing de Angular"""
-        self._update_progress(i18n.t("step5.generating_routing"))
-        self._append_log(f"🗺️  {i18n.t('step5.generating_routing')}\n")
-
-        self._append_log(f"   → Configurando rutas principales\n")
-        self._append_log(f"   → Configurando lazy loading\n")
-        self._append_log(f"   ✓ Routing configurado\n\n")
 
     def _update_progress(self, message: str):
         """Actualiza el mensaje de progreso"""
