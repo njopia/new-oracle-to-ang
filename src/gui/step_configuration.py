@@ -42,23 +42,23 @@ class StepConfiguration(ctk.CTkFrame):
 
     def _create_widgets(self):
         """Crea los widgets del step"""
-        # Scrollable container (compacto)
+        # Scrollable container (ultra compacto)
         self.scroll_container = ctk.CTkScrollableFrame(
             self,
             fg_color="transparent"
         )
-        self.scroll_container.pack(fill="both", expand=True, padx=SPACING['md'], pady=SPACING['sm'])
+        self.scroll_container.pack(fill="both", expand=True, padx=SPACING['md'], pady=SPACING['xs'])
 
         # Sección 1: Configuración de Proyecto
         self._create_project_section()
 
-        # Separador
+        # Separador fino
         self._create_separator()
 
         # Sección 2: Opciones de Generación
         self._create_generation_section()
 
-        # Separador
+        # Separador fino
         self._create_separator()
 
         # Sección 3: Selección de Componentes
@@ -71,16 +71,16 @@ class StepConfiguration(ctk.CTkFrame):
             fg_color=COLORS['bg_tertiary'],
             corner_radius=CORNER_RADIUS['md']
         )
-        section_frame.pack(fill="x", pady=SPACING['sm'])
+        section_frame.pack(fill="x", pady=SPACING['xs'])
 
-        # Título de sección (compacto)
+        # Título de sección (ultra compacto)
         title = ctk.CTkLabel(
             section_frame,
             text=i18n.t("step4.project_config"),
-            font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
+            font=(FONTS['family'], FONTS['size_small'], FONTS['weight_bold']),
             text_color=COLORS['text_primary']
         )
-        title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['sm'], SPACING['xs']))
+        title.pack(anchor="w", padx=SPACING['sm'], pady=SPACING['xs'])
 
         # Nombre del proyecto
         self._create_input_field(
@@ -129,16 +129,16 @@ class StepConfiguration(ctk.CTkFrame):
             fg_color=COLORS['bg_tertiary'],
             corner_radius=CORNER_RADIUS['md']
         )
-        section_frame.pack(fill="x", pady=SPACING['sm'])
+        section_frame.pack(fill="x", pady=SPACING['xs'])
 
-        # Título de sección (compacto)
+        # Título de sección (ultra compacto)
         title = ctk.CTkLabel(
             section_frame,
             text=i18n.t("step4.generation_options"),
-            font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
+            font=(FONTS['family'], FONTS['size_small'], FONTS['weight_bold']),
             text_color=COLORS['text_primary']
         )
-        title.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['sm'], SPACING['xs']))
+        title.pack(anchor="w", padx=SPACING['sm'], pady=SPACING['xs'])
 
         # Checkboxes para opciones
         self._create_checkbox(section_frame, i18n.t("step4.routing"), "routing")
@@ -155,21 +155,21 @@ class StepConfiguration(ctk.CTkFrame):
             fg_color=COLORS['bg_tertiary'],
             corner_radius=CORNER_RADIUS['md']
         )
-        section_frame.pack(fill="x", pady=SPACING['sm'])
+        section_frame.pack(fill="x", pady=SPACING['xs'])
 
-        # Título de sección con botones (compacto)
+        # Título de sección con botones (ultra compacto)
         header_frame = ctk.CTkFrame(section_frame, fg_color="transparent")
-        header_frame.pack(fill="x", padx=SPACING['md'], pady=(SPACING['sm'], SPACING['xs']))
+        header_frame.pack(fill="x", padx=SPACING['sm'], pady=SPACING['xs'])
 
         title = ctk.CTkLabel(
             header_frame,
             text=i18n.t("step4.select_components"),
-            font=(FONTS['family'], FONTS['size_medium'], FONTS['weight_bold']),
+            font=(FONTS['family'], FONTS['size_small'], FONTS['weight_bold']),
             text_color=COLORS['text_primary']
         )
         title.pack(side="left")
 
-        # Botones Seleccionar todos/ninguno (compactos)
+        # Botones Seleccionar todos/ninguno (ultra compactos)
         buttons_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
         buttons_frame.pack(side="right")
 
@@ -177,8 +177,8 @@ class StepConfiguration(ctk.CTkFrame):
             buttons_frame,
             text=i18n.t("step4.select_all"),
             command=self._select_all_files,
-            width=80,
-            height=26,
+            width=70,
+            height=24,
             font=(FONTS['family'], FONTS['size_tiny']),
             fg_color=COLORS['primary'],
             hover_color=COLORS['primary_dark']
@@ -189,21 +189,21 @@ class StepConfiguration(ctk.CTkFrame):
             buttons_frame,
             text=i18n.t("step4.select_none"),
             command=self._select_no_files,
-            width=80,
-            height=26,
+            width=70,
+            height=24,
             font=(FONTS['family'], FONTS['size_tiny']),
             fg_color=COLORS['error'],
             hover_color=COLORS['error_light']
         )
         select_none_btn.pack(side="left", padx=SPACING['xs'])
 
-        # Container para checkboxes de archivos (compacto)
+        # Container para checkboxes de archivos (ultra compacto)
         self.files_container = ctk.CTkFrame(
             section_frame,
             fg_color=COLORS['bg_primary'],
             corner_radius=CORNER_RADIUS['sm']
         )
-        self.files_container.pack(fill="x", padx=SPACING['md'], pady=(SPACING['xs'], SPACING['sm']))
+        self.files_container.pack(fill="x", padx=SPACING['sm'], pady=(SPACING['xs'], SPACING['xs']))
 
         # Placeholder si no hay archivos
         self.no_files_label = ctk.CTkLabel(
@@ -217,12 +217,12 @@ class StepConfiguration(ctk.CTkFrame):
     def _create_input_field(self, parent, label_text: str, config_key: str, placeholder: str):
         """Crea un campo de entrada con label"""
         container = ctk.CTkFrame(parent, fg_color="transparent")
-        container.pack(fill="x", padx=SPACING['md'], pady=SPACING['xs'])
+        container.pack(fill="x", padx=SPACING['sm'], pady=(0, SPACING['xs']))
 
         label = ctk.CTkLabel(
             container,
             text=label_text,
-            font=(FONTS['family'], FONTS['size_small']),
+            font=(FONTS['family'], FONTS['size_tiny']),
             text_color=COLORS['text_secondary'],
             anchor="w"
         )
@@ -231,12 +231,12 @@ class StepConfiguration(ctk.CTkFrame):
         entry = ctk.CTkEntry(
             container,
             placeholder_text=placeholder,
-            height=32,
+            height=28,
             font=(FONTS['family'], FONTS['size_small']),
             fg_color=COLORS['bg_primary'],
             border_color=COLORS['border']
         )
-        entry.pack(fill="x", pady=(SPACING['xs'], 0))
+        entry.pack(fill="x", pady=(2, 0))
         entry.insert(0, self.config_data[config_key])
 
         # Bind para actualizar config_data
@@ -245,12 +245,12 @@ class StepConfiguration(ctk.CTkFrame):
     def _create_option_menu(self, parent, label_text: str, config_key: str, options: List[str]):
         """Crea un menú de opciones con label"""
         container = ctk.CTkFrame(parent, fg_color="transparent")
-        container.pack(fill="x", padx=SPACING['md'], pady=SPACING['xs'])
+        container.pack(fill="x", padx=SPACING['sm'], pady=(0, SPACING['xs']))
 
         label = ctk.CTkLabel(
             container,
             text=label_text,
-            font=(FONTS['family'], FONTS['size_small']),
+            font=(FONTS['family'], FONTS['size_tiny']),
             text_color=COLORS['text_secondary'],
             anchor="w"
         )
@@ -260,13 +260,13 @@ class StepConfiguration(ctk.CTkFrame):
             container,
             values=options,
             command=lambda value: self._update_config(config_key, value),
-            height=32,
+            height=28,
             font=(FONTS['family'], FONTS['size_small']),
             fg_color=COLORS['bg_primary'],
             button_color=COLORS['primary'],
             button_hover_color=COLORS['primary_dark']
         )
-        option_menu.pack(fill="x", pady=(SPACING['xs'], 0))
+        option_menu.pack(fill="x", pady=(2, 0))
         option_menu.set(self.config_data[config_key])
 
     def _create_checkbox(self, parent, label_text: str, config_key: str):
@@ -281,20 +281,20 @@ class StepConfiguration(ctk.CTkFrame):
             border_color=COLORS['border'],
             command=lambda: self._update_config(config_key, checkbox.get())
         )
-        checkbox.pack(anchor="w", padx=SPACING['md'], pady=SPACING['xs'])
+        checkbox.pack(anchor="w", padx=SPACING['sm'], pady=(0, SPACING['xs']))
 
         # Establecer valor inicial
         if self.config_data[config_key]:
             checkbox.select()
 
     def _create_separator(self):
-        """Crea un separador visual (compacto)"""
+        """Crea un separador visual (ultra compacto)"""
         separator = ctk.CTkFrame(
             self.scroll_container,
             height=1,
             fg_color=COLORS['border']
         )
-        separator.pack(fill="x", pady=SPACING['sm'])
+        separator.pack(fill="x", pady=SPACING['xs'])
 
     def _update_config(self, key: str, value: Any):
         """Actualiza el diccionario de configuración"""
@@ -313,7 +313,7 @@ class StepConfiguration(ctk.CTkFrame):
             # Ocultar placeholder
             self.no_files_label.pack_forget()
 
-            # Crear checkbox para cada archivo
+            # Crear checkbox para cada archivo (ultra compacto)
             for file_path in files:
                 filename = Path(file_path).stem  # Solo el nombre sin extensión
 
@@ -327,7 +327,7 @@ class StepConfiguration(ctk.CTkFrame):
                     border_color=COLORS['border'],
                     command=self._update_selected_files
                 )
-                checkbox.pack(anchor="w", padx=SPACING['sm'], pady=SPACING['xs'])
+                checkbox.pack(anchor="w", padx=SPACING['sm'], pady=(0, SPACING['xs']))
                 checkbox.select()  # Seleccionado por defecto
                 self.file_checkboxes.append(checkbox)
 
