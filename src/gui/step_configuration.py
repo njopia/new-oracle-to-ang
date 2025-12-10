@@ -18,6 +18,7 @@ class StepConfiguration(ctk.CTkFrame):
         super().__init__(master, fg_color=COLORS['bg_secondary'], **kwargs)
 
         self.config_data: Dict[str, Any] = {
+            'generation_mode': 'complete_project',  # 'complete_project' o 'components_only'
             'project_name': 'angular-app',
             'component_prefix': 'app',
             'style_extension': 'scss',
@@ -83,6 +84,17 @@ class StepConfiguration(ctk.CTkFrame):
         # Columna izquierda
         left_column = ctk.CTkFrame(grid_container, fg_color="transparent")
         left_column.pack(side="left", fill="both", expand=True, padx=SPACING['xs'])
+
+        # Modo de generación (NUEVO - campo crítico al inicio)
+        self._create_option_menu_with_mapping(
+            left_column,
+            i18n.t("step4.generation_mode"),
+            "generation_mode",
+            {
+                i18n.t("step4.mode_complete"): "complete_project",
+                i18n.t("step4.mode_components"): "components_only"
+            }
+        )
 
         self._create_input_field(left_column, i18n.t("step4.project_name"), "project_name", "angular-app")
         self._create_input_field(left_column, i18n.t("step4.component_prefix"), "component_prefix", "app")
@@ -253,6 +265,53 @@ class StepConfiguration(ctk.CTkFrame):
         )
         option_menu.pack(fill="x", pady=(1, 0))
         option_menu.set(self.config_data[config_key])
+
+    def _create_option_menu_with_mapping(self, parent, label_text: str, config_key: str, options_map: Dict[str, str]):
+        """
+        Crea un menú de opciones con mapeo de valores display -> valores internos
+
+        Args:
+            parent: Widget padre
+            label_text: Texto del label
+            config_key: Key en config_data
+            options_map: Dict con {display_value: internal_value}
+        """
+        container = ctk.CTkFrame(parent, fg_color="transparent")
+        container.pack(fill="x", pady=(0, SPACING['xs']))
+
+        label = ctk.CTkLabel(
+            container,
+            text=label_text,
+            font=(FONTS['family'], FONTS['size_tiny']),
+            text_color=COLORS['text_secondary'],
+            anchor="w"
+        )
+        label.pack(anchor="w")
+
+        # Crear reverse mapping para encontrar display value desde internal value
+        reverse_map = {v: k for k, v in options_map.items()}
+        display_values = list(options_map.keys())
+
+        def on_select(display_value: str):
+            internal_value = options_map[display_value]
+            self._update_config(config_key, internal_value)
+
+        option_menu = ctk.CTkOptionMenu(
+            container,
+            values=display_values,
+            command=on_select,
+            height=26,
+            font=(FONTS['family'], FONTS['size_small']),
+            fg_color=COLORS['bg_primary'],
+            button_color=COLORS['primary'],
+            button_hover_color=COLORS['primary_dark']
+        )
+        option_menu.pack(fill="x", pady=(1, 0))
+
+        # Set valor inicial usando reverse mapping
+        current_internal = self.config_data[config_key]
+        if current_internal in reverse_map:
+            option_menu.set(reverse_map[current_internal])
 
     def _create_checkbox(self, parent, label_text: str, config_key: str):
         """Crea un checkbox con label"""
