@@ -15,6 +15,8 @@ from .step_prerequisites import StepPrerequisites
 from .step_file import StepFile
 from .step_analysis import StepAnalysis
 from .step_configuration import StepConfiguration
+from .step_generation import StepGeneration
+from .step_completed import StepCompleted
 
 
 class MainWindow(ctk.CTk):
@@ -164,6 +166,14 @@ class MainWindow(ctk.CTk):
         self.step_configuration = StepConfiguration(self.content_frame)
         self.steps.append(self.step_configuration)
 
+        # Step 5: Generation
+        self.step_generation = StepGeneration(self.content_frame)
+        self.steps.append(self.step_generation)
+
+        # Step 6: Completed
+        self.step_completed = StepCompleted(self.content_frame)
+        self.steps.append(self.step_completed)
+
     def _show_step(self, step_index: int):
         """Muestra el paso especificado"""
         # Ocultar todos los steps
@@ -221,6 +231,25 @@ class MainWindow(ctk.CTk):
                 ]
                 self.step_configuration.set_analyzed_files(xml_files)
 
+            # Si es el step de configuración, pasar configuración al step de generación
+            if current_step == 3:  # Step Configuration
+                config = self.step_configuration.get_configuration()
+                xml_files = config.get('selected_files', [])
+                self.step_generation.set_configuration(config, xml_files)
+
+            # Si es el step de generación, pasar resultados al step completado
+            if current_step == 4:  # Step Generation
+                output_dir = self.step_generation.get_output_dir()
+                # Obtener el reporte del step de análisis
+                report_path = getattr(self.step_analysis, 'report_path', '')
+                # Calcular estadísticas
+                stats = {
+                    'total_forms': len(self.step_file.get_selected_files()),
+                    'components_generated': len(self.step_configuration.get_configuration().get('selected_files', [])),
+                    'services_generated': 2 if self.step_configuration.get_configuration().get('generate_services', True) else 0
+                }
+                self.step_completed.set_results(output_dir, report_path, stats)
+
         self.stepper.next_step()
 
     def _get_step_warning_message(self, step_index: int) -> str:
@@ -233,6 +262,8 @@ class MainWindow(ctk.CTk):
             return "Please complete the analysis first"
         elif step_index == 3:
             return "Please configure the project settings and select at least one component"
+        elif step_index == 4:
+            return "Please complete the code generation first"
         return "Please complete the current step"
 
     def _on_language_selected(self, value: str):
