@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 from .base_generator import BaseGenerator, GenerationResult
+from .smart_component_generator import SmartComponentGenerator
 
 
 class AngularProjectGenerator(BaseGenerator):
@@ -55,11 +56,22 @@ class AngularProjectGenerator(BaseGenerator):
             components_dir.mkdir(parents=True, exist_ok=True)
 
             selected_files = self.config.get('selected_files', [])
+            smart_generator = SmartComponentGenerator(self.config)
+
             for xml_file in selected_files:
                 component_name = Path(xml_file).stem
-                component_files = self._create_component(component_name, components_dir)
+                # Formatear nombre según convención
+                naming = self.config.get('naming_convention', 'kebab-case')
+                formatted_name = self._format_name(component_name, naming)
+
+                # Usar generador inteligente que parsea el XML
+                component_files = smart_generator.generate_component_from_xml(
+                    xml_file,
+                    components_dir,
+                    formatted_name
+                )
                 files_generated.extend(component_files)
-                self._log(f"   ✓ Componente generado: {component_name}\n")
+                self._log(f"   ✓ Componente generado: {formatted_name}\n")
 
             self._log(f"\n✓ {len(selected_files)} componentes generados\n\n")
 

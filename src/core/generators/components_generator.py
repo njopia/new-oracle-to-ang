@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 from .base_generator import BaseGenerator, GenerationResult
+from .smart_component_generator import SmartComponentGenerator
 
 
 class ComponentsOnlyGenerator(BaseGenerator):
@@ -49,15 +50,23 @@ class ComponentsOnlyGenerator(BaseGenerator):
             self._update_progress("Generando componentes...")
 
             selected_files = self.config.get('selected_files', [])
+            smart_generator = SmartComponentGenerator(self.config)
+
             for xml_file in selected_files:
                 component_name = Path(xml_file).stem
-                component_files = self._create_component(
-                    component_name,
-                    folders['components']
+                # Formatear nombre según convención
+                naming = self.config.get('naming_convention', 'kebab-case')
+                formatted_name = self._format_name(component_name, naming)
+
+                # Usar generador inteligente que parsea el XML
+                component_files = smart_generator.generate_component_from_xml(
+                    xml_file,
+                    folders['components'],
+                    formatted_name
                 )
                 files_generated.extend(component_files)
 
-                self._log(f"   ✓ Componente generado: {component_name}\n")
+                self._log(f"   ✓ Componente generado: {formatted_name}\n")
                 for file_path in component_files:
                     rel_path = Path(file_path).relative_to(output_path)
                     self._log(f"      • {rel_path}\n")
