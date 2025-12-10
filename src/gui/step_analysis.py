@@ -126,12 +126,12 @@ class StepAnalysis(ctk.CTkFrame):
         self.buttons_frame.pack_forget()
 
         # Mostrar elementos de análisis
-        self.log_text.pack(fill="both", expand=True, padx=SPACING['md'], pady=(SPACING['sm'], SPACING['xs']))
+        self.log_text.pack(fill="both", expand=True, padx=SPACING['sm'], pady=SPACING['xs'])
         self.progress_bar.pack(pady=SPACING['xs'])
-        self.progress_label.pack(pady=SPACING['xs'])
+        self.progress_label.pack(pady=0)
 
         # Reposicionar botones abajo sin expand
-        self.buttons_frame.pack(pady=SPACING['sm'])
+        self.buttons_frame.pack(pady=SPACING['xs'])
 
         self.is_analyzing = True
         self.start_button.configure(state="disabled")

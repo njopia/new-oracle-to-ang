@@ -138,13 +138,10 @@ class MainWindow(ctk.CTk):
         )
         self.next_button.pack(side="left", padx=SPACING['sm'])
 
-        # Content frame (ahora ocupa TODO el espacio restante)
-        self.content_frame = ctk.CTkScrollableFrame(
+        # Content frame (ahora ocupa TODO el espacio restante - SIN SCROLL)
+        self.content_frame = ctk.CTkFrame(
             self,
-            fg_color="transparent",
-            orientation="vertical",
-            scrollbar_button_color=COLORS['secondary'],
-            scrollbar_button_hover_color=COLORS['primary']
+            fg_color="transparent"
         )
         self.content_frame.pack(fill="both", expand=True, padx=0, pady=0)
 
