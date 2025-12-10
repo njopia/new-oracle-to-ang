@@ -105,9 +105,47 @@ class MainWindow(ctk.CTk):
         )
         self.stepper.pack(pady=SPACING['xs'])
 
-        # Content frame
-        self.content_frame = ctk.CTkScrollableFrame(self, fg_color="transparent", orientation="vertical", scrollbar_button_color=COLORS['secondary'], 
-    scrollbar_button_hover_color=COLORS['primary'])
+        # Navigation buttons ARRIBA (después del stepper, antes del contenido)
+        nav_frame = ctk.CTkFrame(self, fg_color="transparent")
+        nav_frame.pack(pady=(0, SPACING['xs']))
+
+        self.back_button = ctk.CTkButton(
+            nav_frame,
+            text=i18n.t("buttons.back"),
+            command=self._on_back,
+            width=100,
+            height=30,
+            fg_color="transparent",
+            border_width=2,
+            border_color=COLORS['primary'],
+            text_color=COLORS['primary'],
+            hover_color=COLORS['hover'],
+            corner_radius=CORNER_RADIUS['md'],
+            font=(FONTS['family'], FONTS['size_small'])
+        )
+        self.back_button.pack(side="left", padx=SPACING['sm'])
+
+        self.next_button = ctk.CTkButton(
+            nav_frame,
+            text=i18n.t("buttons.next"),
+            command=self._on_next,
+            width=100,
+            height=30,
+            fg_color=COLORS['primary'],
+            hover_color=COLORS['primary_dark'],
+            corner_radius=CORNER_RADIUS['md'],
+            font=(FONTS['family'], FONTS['size_small'])
+        )
+        self.next_button.pack(side="left", padx=SPACING['sm'])
+
+        # Content frame (ahora ocupa TODO el espacio restante)
+        self.content_frame = ctk.CTkScrollableFrame(
+            self,
+            fg_color="transparent",
+            orientation="vertical",
+            scrollbar_button_color=COLORS['secondary'],
+            scrollbar_button_hover_color=COLORS['primary']
+        )
         self.content_frame.pack(fill="both", expand=True, padx=0, pady=0)
 
         # Create steps
@@ -128,37 +166,6 @@ class MainWindow(ctk.CTk):
         # Step 4: Configuration
         self.step_configuration = StepConfiguration(self.content_frame)
         self.steps.append(self.step_configuration)
-
-        # Navigation buttons (ultra compactos)
-        nav_frame = ctk.CTkFrame(self, fg_color="transparent")
-        nav_frame.pack(pady=SPACING['xs'])
-
-        self.back_button = ctk.CTkButton(
-            nav_frame,
-            text=i18n.t("buttons.back"),
-            command=self._on_back,
-            width=110,
-            height=34,
-            fg_color="transparent",
-            border_width=2,
-            border_color=COLORS['primary'],
-            text_color=COLORS['primary'],
-            hover_color=COLORS['hover'],
-            corner_radius=CORNER_RADIUS['md']
-        )
-        self.back_button.pack(side="left", padx=SPACING['sm'])
-
-        self.next_button = ctk.CTkButton(
-            nav_frame,
-            text=i18n.t("buttons.next"),
-            command=self._on_next,
-            width=110,
-            height=34,
-            fg_color=COLORS['primary'],
-            hover_color=COLORS['primary_dark'],
-            corner_radius=CORNER_RADIUS['md']
-        )
-        self.next_button.pack(side="left", padx=SPACING['sm'])
 
     def _show_step(self, step_index: int):
         """Muestra el paso especificado"""
