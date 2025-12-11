@@ -4,6 +4,7 @@ Generador de Proyecto Angular Completo
 """
 
 import subprocess
+import os
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -155,16 +156,30 @@ class AngularProjectGenerator(BaseGenerator):
             self._log("   Por favor espere, esto puede tomar varios minutos...\n")
             self._log("   (Instalando dependencias de Node.js)\n\n")
 
-            # Ejecutar comando
-            process = subprocess.Popen(
-                cmd,
-                cwd=str(output_path),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-                universal_newlines=True
-            )
+            # Ejecutar comando (con shell=True en Windows para encontrar ng.cmd)
+            if os.name == 'nt':
+                # Windows: necesita shell=True para encontrar ng.cmd
+                process = subprocess.Popen(
+                    cmd,
+                    cwd=str(output_path),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True,
+                    shell=True
+                )
+            else:
+                # Linux/Mac: no necesita shell
+                process = subprocess.Popen(
+                    cmd,
+                    cwd=str(output_path),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True
+                )
 
             # Capturar salida en tiempo real
             for line in iter(process.stdout.readline, ''):
@@ -227,13 +242,14 @@ class AngularProjectGenerator(BaseGenerator):
                     '--skip-tests' if not self.config.get('generate_tests', True) else '--skip-tests=false'
                 ]
 
-                # Ejecutar ng generate
+                # Ejecutar ng generate (con shell=True en Windows)
                 result = subprocess.run(
                     cmd,
                     cwd=str(project_path),
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True
+                    text=True,
+                    shell=(os.name == 'nt')  # shell=True en Windows
                 )
 
                 if result.returncode != 0:
@@ -399,7 +415,8 @@ class AngularProjectGenerator(BaseGenerator):
                     cwd=str(project_path),
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True
+                    text=True,
+                    shell=(os.name == 'nt')  # shell=True en Windows
                 )
 
                 if result.returncode == 0:
