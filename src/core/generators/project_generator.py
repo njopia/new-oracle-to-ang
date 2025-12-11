@@ -47,31 +47,19 @@ class AngularProjectGenerator(BaseGenerator):
 
             self._log("✓ Proyecto base creado\n\n")
 
-            # 2. Generar componentes migrados
+            # 2. Generar componentes migrados con Angular CLI
             self._log("🎨 Generando componentes migrados...\n")
             self._update_progress("Generando componentes...")
 
             project_path = output_path / project_name
-            components_dir = project_path / "src" / "app" / "components"
-            components_dir.mkdir(parents=True, exist_ok=True)
-
             selected_files = self.config.get('selected_files', [])
-            smart_generator = SmartComponentGenerator(self.config)
 
-            for xml_file in selected_files:
-                component_name = Path(xml_file).stem
-                # Formatear nombre según convención
-                naming = self.config.get('naming_convention', 'kebab-case')
-                formatted_name = self._format_name(component_name, naming)
-
-                # Usar generador inteligente que parsea el XML
-                component_files = smart_generator.generate_component_from_xml(
-                    xml_file,
-                    components_dir,
-                    formatted_name
-                )
-                files_generated.extend(component_files)
-                self._log(f"   ✓ Componente generado: {formatted_name}\n")
+            # Usar ng generate component para cada componente
+            components_generated = self._generate_components_with_cli(
+                project_path,
+                selected_files
+            )
+            files_generated.extend(components_generated)
 
             self._log(f"\n✓ {len(selected_files)} componentes generados\n\n")
 
@@ -188,23 +176,156 @@ class AngularProjectGenerator(BaseGenerator):
             self._log(f"\n   ✗ Error al crear proyecto: {str(e)}\n")
             return False
 
+    def _generate_components_with_cli(self, project_path: Path, xml_files: List[str]) -> List[str]:
+        """
+        Genera componentes usando ng generate component
+
+        Args:
+            project_path: Ruta al proyecto Angular
+            xml_files: Lista de archivos XML
+
+        Returns:
+            Lista de archivos generados
+        """
+        files_generated = []
+        smart_generator = SmartComponentGenerator(self.config)
+
+        for xml_file in xml_files:
+            component_name = Path(xml_file).stem
+            naming = self.config.get('naming_convention', 'kebab-case')
+            formatted_name = self._format_name(component_name, naming)
+
+            try:
+                # 1. Usar ng generate component
+                self._log(f"   → Generando {formatted_name}...\n")
+
+                # Construir comando
+                cmd = [
+                    'ng', 'generate', 'component',
+                    f'components/{formatted_name}',
+                    '--skip-tests' if not self.config.get('generate_tests', True) else '--skip-tests=false'
+                ]
+
+                # Ejecutar ng generate
+                result = subprocess.run(
+                    cmd,
+                    cwd=str(project_path),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+
+                if result.returncode != 0:
+                    self._log(f"   ⚠ Advertencia: ng generate falló, generando manualmente\n")
+                    # Fallback: generar manualmente
+                    components_dir = project_path / "src" / "app" / "components"
+                    components_dir.mkdir(parents=True, exist_ok=True)
+                    component_files = smart_generator.generate_component_from_xml(
+                        xml_file,
+                        components_dir,
+                        formatted_name
+                    )
+                    files_generated.extend(component_files)
+                else:
+                    # 2. Sobrescribir archivos con templates inteligentes
+                    component_dir = project_path / "src" / "app" / "components" / formatted_name
+
+                    # Parsear XML y generar contenido inteligente
+                    from ..parsers import OracleFormsParser
+                    parser = OracleFormsParser()
+                    form_structure = parser.parse_file(xml_file)
+
+                    # Sobrescribir .ts
+                    ts_file = component_dir / f"{formatted_name}.component.ts"
+                    ts_content = smart_generator._generate_smart_component_ts(formatted_name, form_structure)
+                    ts_file.write_text(ts_content, encoding='utf-8')
+                    files_generated.append(str(ts_file))
+
+                    # Sobrescribir .html
+                    html_file = component_dir / f"{formatted_name}.component.html"
+                    html_content = smart_generator._generate_smart_component_html(formatted_name, form_structure)
+                    html_file.write_text(html_content, encoding='utf-8')
+                    files_generated.append(str(html_file))
+
+                    # Sobrescribir .scss/.css
+                    style_ext = self.config.get('style_extension', 'scss')
+                    style_file = component_dir / f"{formatted_name}.component.{style_ext}"
+                    style_content = smart_generator._generate_smart_component_styles(formatted_name, form_structure)
+                    style_file.write_text(style_content, encoding='utf-8')
+                    files_generated.append(str(style_file))
+
+                    # Generar .model.ts si tiene items
+                    if form_structure.get_all_items():
+                        model_file = component_dir / f"{formatted_name}.model.ts"
+                        model_content = smart_generator._generate_model(formatted_name, form_structure)
+                        model_file.write_text(model_content, encoding='utf-8')
+                        files_generated.append(str(model_file))
+
+                    # Spec file ya fue generado por ng generate
+                    spec_file = component_dir / f"{formatted_name}.component.spec.ts"
+                    if spec_file.exists():
+                        files_generated.append(str(spec_file))
+
+                    self._log(f"   ✓ {formatted_name} generado e integrado\n")
+
+            except Exception as e:
+                self._log(f"   ✗ Error en {formatted_name}: {str(e)}\n")
+                # Continuar con el siguiente componente
+                continue
+
+        return files_generated
+
     def _generate_services(self, project_path: Path):
-        """Genera servicios Angular"""
+        """Genera servicios Angular usando ng generate service"""
         self._log("⚙️  Generando servicios...\n")
         self._update_progress("Generando servicios...")
 
-        services_dir = project_path / "src" / "app" / "services"
-        services_dir.mkdir(parents=True, exist_ok=True)
+        services = ['data', 'api']
 
-        # Servicio de datos
-        data_service = services_dir / "data.service.ts"
-        data_service.write_text(self._get_data_service_template(), encoding='utf-8')
-        self._log("   ✓ data.service.ts\n")
+        for service_name in services:
+            try:
+                # Usar ng generate service
+                cmd = [
+                    'ng', 'generate', 'service',
+                    f'services/{service_name}',
+                    '--skip-tests'
+                ]
 
-        # Servicio de API
-        api_service = services_dir / "api.service.ts"
-        api_service.write_text(self._get_api_service_template(), encoding='utf-8')
-        self._log("   ✓ api.service.ts\n")
+                result = subprocess.run(
+                    cmd,
+                    cwd=str(project_path),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+
+                if result.returncode == 0:
+                    # Sobrescribir con nuestro template
+                    service_file = project_path / "src" / "app" / "services" / f"{service_name}.service.ts"
+
+                    if service_name == 'data':
+                        content = self._get_data_service_template()
+                    else:  # api
+                        content = self._get_api_service_template()
+
+                    service_file.write_text(content, encoding='utf-8')
+                    self._log(f"   ✓ {service_name}.service.ts\n")
+                else:
+                    # Fallback: crear manualmente
+                    services_dir = project_path / "src" / "app" / "services"
+                    services_dir.mkdir(parents=True, exist_ok=True)
+
+                    service_file = services_dir / f"{service_name}.service.ts"
+                    if service_name == 'data':
+                        content = self._get_data_service_template()
+                    else:
+                        content = self._get_api_service_template()
+
+                    service_file.write_text(content, encoding='utf-8')
+                    self._log(f"   ✓ {service_name}.service.ts (manual)\n")
+
+            except Exception as e:
+                self._log(f"   ⚠ Error generando {service_name}.service: {str(e)}\n")
 
     def _configure_routing(self, project_path: Path, xml_files: List[str]):
         """Configura el routing del proyecto"""
