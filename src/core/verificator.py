@@ -38,6 +38,7 @@ class Verificator:
         self.results = {
             'nodejs': self.verify_nodejs(),
             'npm': self.verify_npm(),
+            'angular_cli': self.verify_angular_cli(),
             'java': self.verify_java(),
             'oracle_home': self.verify_oracle_home(),
             'frmf2xml': self.verify_frmf2xml(),
@@ -176,6 +177,67 @@ class Verificator:
             name='npm',
             found=False,
             message='npm not found'
+        )
+
+    def verify_angular_cli(self) -> PrerequisiteCheck:
+        """Verifica Angular CLI"""
+        try:
+            # Intentar con ng
+            result = subprocess.run(
+                ['ng', 'version'],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                shell=os.name == 'nt'  # Shell en Windows
+            )
+
+            if result.returncode == 0:
+                # Extraer versión de Angular CLI
+                output = result.stdout
+                version = None
+
+                for line in output.split('\n'):
+                    if 'Angular CLI' in line:
+                        parts = line.split(':')
+                        if len(parts) > 1:
+                            version = parts[1].strip()
+                            break
+
+                if not version:
+                    version = 'instalado'
+
+                # Obtener ruta
+                if os.name == 'nt':
+                    path_result = subprocess.run(
+                        ['where', 'ng'],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                        shell=True
+                    )
+                else:
+                    path_result = subprocess.run(
+                        ['which', 'ng'],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+
+                path = path_result.stdout.strip().split('\n')[0] if path_result.returncode == 0 else None
+
+                return PrerequisiteCheck(
+                    name='Angular CLI',
+                    found=True,
+                    version=version,
+                    path=path
+                )
+        except Exception as e:
+            pass
+
+        return PrerequisiteCheck(
+            name='Angular CLI',
+            found=False,
+            message='Angular CLI not installed. Run: npm install -g @angular/cli'
         )
 
     def verify_java(self) -> PrerequisiteCheck:
@@ -322,3 +384,136 @@ class Verificator:
         not_found = total - found
 
         return (total, found, not_found)
+
+    def install_angular_cli(self, callback=None) -> Tuple[bool, str]:
+        """
+        Instala Angular CLI automáticamente usando npm
+
+        Args:
+            callback: Función opcional para recibir output en tiempo real
+                     callback(line: str) -> None
+
+        Returns:
+            Tupla (success: bool, message: str)
+        """
+        try:
+            if callback:
+                callback("📦 Instalando Angular CLI globalmente...\n")
+                callback("⏳ Este proceso puede tomar varios minutos...\n\n")
+
+            # Comando de instalación
+            cmd = ['npm', 'install', '-g', '@angular/cli']
+
+            # Ejecutar comando
+            if os.name == 'nt':
+                # Windows
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True,
+                    shell=True
+                )
+            else:
+                # Linux/Mac
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True
+                )
+
+            # Capturar output en tiempo real
+            output_lines = []
+            for line in iter(process.stdout.readline, ''):
+                if line:
+                    output_lines.append(line)
+                    if callback:
+                        callback(line)
+
+            process.wait()
+
+            # Verificar resultado
+            if process.returncode == 0:
+                if callback:
+                    callback("\n✅ Angular CLI instalado correctamente\n")
+                    callback("🔄 Verificando instalación...\n")
+
+                # Re-verificar
+                check = self.verify_angular_cli()
+                if check.found:
+                    if callback:
+                        callback(f"✅ Angular CLI {check.version} está listo para usar\n")
+                    return (True, f"Angular CLI instalado: {check.version}")
+                else:
+                    return (False, "Instalación completada pero no se puede verificar. Reinicia el terminal.")
+            else:
+                error_msg = ''.join(output_lines[-10:]) if output_lines else "Error desconocido"
+                if callback:
+                    callback(f"\n❌ Error durante la instalación:\n{error_msg}\n")
+                return (False, f"Error de instalación: {error_msg}")
+
+        except Exception as e:
+            error_msg = str(e)
+            if callback:
+                callback(f"\n❌ Excepción durante la instalación: {error_msg}\n")
+            return (False, f"Excepción: {error_msg}")
+
+    def install_nodejs_packages(self, packages: list, callback=None) -> Tuple[bool, str]:
+        """
+        Instala paquetes npm globalmente de manera genérica
+
+        Args:
+            packages: Lista de nombres de paquetes npm
+            callback: Función opcional para recibir output en tiempo real
+
+        Returns:
+            Tupla (success: bool, message: str)
+        """
+        try:
+            for package in packages:
+                if callback:
+                    callback(f"📦 Instalando {package}...\n")
+
+                cmd = ['npm', 'install', '-g', package]
+
+                if os.name == 'nt':
+                    process = subprocess.Popen(
+                        cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        bufsize=1,
+                        universal_newlines=True,
+                        shell=True
+                    )
+                else:
+                    process = subprocess.Popen(
+                        cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        bufsize=1,
+                        universal_newlines=True
+                    )
+
+                for line in iter(process.stdout.readline, ''):
+                    if line and callback:
+                        callback(line)
+
+                process.wait()
+
+                if process.returncode != 0:
+                    return (False, f"Error instalando {package}")
+
+                if callback:
+                    callback(f"✅ {package} instalado\n\n")
+
+            return (True, "Todos los paquetes instalados correctamente")
+
+        except Exception as e:
+            return (False, f"Excepción: {str(e)}")
