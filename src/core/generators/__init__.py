@@ -8,11 +8,13 @@ from .project_generator import AngularProjectGenerator
 from .components_generator import ComponentsOnlyGenerator
 from .smart_component_generator import SmartComponentGenerator
 from .crud_service_generator import CrudServiceGenerator
+from .lov_generator import LovGenerator
 
 __all__ = [
     'BaseGenerator',
     'AngularProjectGenerator',
     'ComponentsOnlyGenerator',
     'SmartComponentGenerator',
-    'CrudServiceGenerator'
+    'CrudServiceGenerator',
+    'LovGenerator'
 ]

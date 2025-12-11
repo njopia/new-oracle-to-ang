@@ -10,6 +10,7 @@ from typing import Dict, Any, List
 from .base_generator import BaseGenerator, GenerationResult
 from .smart_component_generator import SmartComponentGenerator
 from .crud_service_generator import CrudServiceGenerator
+from .lov_generator import LovGenerator
 from ..parsers import OracleFormsParser
 
 
@@ -78,6 +79,15 @@ class AngularProjectGenerator(BaseGenerator):
                     self._log(f"✓ {len(crud_services)} servicios CRUD generados\n\n")
                 else:
                     self._log("ℹ️  No se encontraron data sources para generar servicios\n\n")
+
+                # 3.6 Generar LOVs (List of Values)
+                self._log("📋 Generando LOVs (List of Values)...\n")
+                lov_files = self._generate_lovs(project_path, selected_files)
+                if lov_files:
+                    files_generated.extend(lov_files)
+                    self._log(f"✓ LOVs generados: enums, interfaces y servicio\n\n")
+                else:
+                    self._log("ℹ️  No se encontraron LOVs para generar\n\n")
 
             # 4. Configurar routing (si está habilitado)
             if self.config.get('routing', True):
@@ -325,6 +335,47 @@ class AngularProjectGenerator(BaseGenerator):
 
         except Exception as e:
             self._log(f"   ⚠ Error generando servicios CRUD: {str(e)}\n")
+            return []
+
+    def _generate_lovs(self, project_path: Path, xml_files: List[str]) -> List[str]:
+        """
+        Genera enums e interfaces para LOVs
+
+        Args:
+            project_path: Ruta al proyecto Angular
+            xml_files: Lista de archivos XML
+
+        Returns:
+            Lista de archivos generados
+        """
+        try:
+            # Parsear todos los XMLs para extraer LOVs
+            parser = OracleFormsParser()
+            form_structures = []
+
+            for xml_file in xml_files:
+                form_structure = parser.parse_file(xml_file)
+                form_structures.append(form_structure)
+
+            # Generar LOVs
+            models_dir = project_path / "src" / "app" / "models"
+            models_dir.mkdir(parents=True, exist_ok=True)
+
+            lov_generator = LovGenerator(self.config)
+            files_generated = lov_generator.generate_lovs(
+                form_structures,
+                models_dir
+            )
+
+            # Log de archivos generados
+            for file_path in files_generated:
+                file_name = Path(file_path).name
+                self._log(f"   ✓ {file_name}\n")
+
+            return files_generated
+
+        except Exception as e:
+            self._log(f"   ⚠ Error generando LOVs: {str(e)}\n")
             return []
 
     def _generate_services(self, project_path: Path):
