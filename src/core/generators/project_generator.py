@@ -9,6 +9,8 @@ from typing import Dict, Any, List
 
 from .base_generator import BaseGenerator, GenerationResult
 from .smart_component_generator import SmartComponentGenerator
+from .crud_service_generator import CrudServiceGenerator
+from ..parsers import OracleFormsParser
 
 
 class AngularProjectGenerator(BaseGenerator):
@@ -66,7 +68,16 @@ class AngularProjectGenerator(BaseGenerator):
             # 3. Generar servicios (si está habilitado)
             if self.config.get('generate_services', True):
                 self._generate_services(project_path)
-                self._log("✓ Servicios generados\n\n")
+                self._log("✓ Servicios base generados\n\n")
+
+                # 3.5 Generar servicios CRUD automáticos desde data sources
+                self._log("⚙️  Generando servicios CRUD desde data sources...\n")
+                crud_services = self._generate_crud_services(project_path, selected_files)
+                if crud_services:
+                    files_generated.extend(crud_services)
+                    self._log(f"✓ {len(crud_services)} servicios CRUD generados\n\n")
+                else:
+                    self._log("ℹ️  No se encontraron data sources para generar servicios\n\n")
 
             # 4. Configurar routing (si está habilitado)
             if self.config.get('routing', True):
@@ -274,6 +285,47 @@ class AngularProjectGenerator(BaseGenerator):
                 continue
 
         return files_generated
+
+    def _generate_crud_services(self, project_path: Path, xml_files: List[str]) -> List[str]:
+        """
+        Genera servicios CRUD automáticos desde data sources
+
+        Args:
+            project_path: Ruta al proyecto Angular
+            xml_files: Lista de archivos XML
+
+        Returns:
+            Lista de archivos generados
+        """
+        try:
+            # Parsear todos los XMLs para extraer estructuras
+            parser = OracleFormsParser()
+            form_structures = []
+
+            for xml_file in xml_files:
+                form_structure = parser.parse_file(xml_file)
+                form_structures.append(form_structure)
+
+            # Generar servicios CRUD
+            services_dir = project_path / "src" / "app" / "services"
+            services_dir.mkdir(parents=True, exist_ok=True)
+
+            crud_generator = CrudServiceGenerator(self.config)
+            files_generated = crud_generator.generate_crud_services(
+                form_structures,
+                services_dir
+            )
+
+            # Log de servicios generados
+            for file_path in files_generated:
+                service_name = Path(file_path).stem
+                self._log(f"   ✓ {service_name}.service.ts (CRUD)\n")
+
+            return files_generated
+
+        except Exception as e:
+            self._log(f"   ⚠ Error generando servicios CRUD: {str(e)}\n")
+            return []
 
     def _generate_services(self, project_path: Path):
         """Genera servicios Angular usando ng generate service"""
