@@ -14,6 +14,7 @@ from typing import Dict, Any, List
 from ..assets.styles import COLORS, FONTS, SPACING, CORNER_RADIUS
 from ..utils.i18n import i18n
 from ..core.generators import AngularProjectGenerator, ComponentsOnlyGenerator
+from ..core.verificator import Verificator
 
 
 class StepGeneration(ctk.CTkFrame):
@@ -26,6 +27,8 @@ class StepGeneration(ctk.CTkFrame):
         self.xml_files: List[str] = []
         self.output_dir: str = ""
         self.generation_complete = False
+        self.verificator = Verificator()
+        self.installing_cli = False
 
         self._create_widgets()
 
@@ -72,6 +75,19 @@ class StepGeneration(ctk.CTkFrame):
 
         # Botones de acción (ocultos inicialmente)
         self.buttons_frame = ctk.CTkFrame(self, fg_color="transparent")
+
+        # Botón para instalar Angular CLI (se muestra cuando es necesario)
+        self.install_cli_btn = ctk.CTkButton(
+            self.buttons_frame,
+            text="🔧 Instalar Angular CLI Ahora",
+            command=self._on_install_cli,
+            height=34,
+            width=220,
+            font=(FONTS['family'], FONTS['size_normal'], FONTS['weight_bold']),
+            fg_color=COLORS['warning'],
+            hover_color="#d97706",
+            corner_radius=CORNER_RADIUS['md']
+        )
 
         self.open_folder_btn = ctk.CTkButton(
             self.buttons_frame,
@@ -122,8 +138,35 @@ class StepGeneration(ctk.CTkFrame):
             self._append_log(f"  {i18n.t('step5.title')}\n")
             self._append_log(f"{'='*60}\n\n")
 
-            # Determinar modo de generación
+            # Verificar prerequisitos antes de generar
             generation_mode = self.configuration.get('generation_mode', 'complete_project')
+
+            # Solo verificar Angular CLI en modo proyecto completo
+            if generation_mode == 'complete_project':
+                self._append_log("🔍 Verificando prerequisitos...\n")
+                cli_check = self.verificator.verify_angular_cli()
+
+                if not cli_check.found:
+                    self._append_log("\n⚠️  Angular CLI no está instalado\n")
+                    self._append_log("━" * 60 + "\n\n")
+                    self._append_log("Para generar un proyecto completo de Angular, necesitas\n")
+                    self._append_log("tener Angular CLI instalado globalmente.\n\n")
+                    self._append_log("Puedes instalarlo de dos formas:\n\n")
+                    self._append_log("  1️⃣  Hacer clic en el botón 'Instalar Angular CLI Ahora'\n")
+                    self._append_log("     (aparece abajo de esta ventana)\n\n")
+                    self._append_log("  2️⃣  Manualmente desde tu terminal:\n")
+                    self._append_log("     npm install -g @angular/cli\n\n")
+                    self._append_log("━" * 60 + "\n")
+
+                    # Mostrar botón de instalación
+                    self.install_cli_btn.pack(side="left", padx=SPACING['sm'])
+
+                    # Detener progress bar
+                    self.progress_bar.stop()
+                    self.progress_label.configure(text="⚠️ Angular CLI requerido")
+                    return
+                else:
+                    self._append_log(f"✓ Angular CLI {cli_check.version} detectado\n\n")
 
             # Crear directorio de salida con timestamp
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -163,9 +206,11 @@ class StepGeneration(ctk.CTkFrame):
             self._append_log(f"{traceback.format_exc()}\n")
             self.generation_complete = False
         finally:
-            # Detener progress bar
-            self.progress_bar.stop()
-            self.progress_label.configure(text=i18n.t("step5.completed"))
+            # Detener progress bar si aún está corriendo
+            if self.progress_bar.cget("mode") == "indeterminate":
+                self.progress_bar.stop()
+            if not self.installing_cli:
+                self.progress_label.configure(text=i18n.t("step5.completed"))
 
     def _update_progress(self, message: str):
         """Actualiza el mensaje de progreso"""
@@ -175,6 +220,114 @@ class StepGeneration(ctk.CTkFrame):
         """Añade texto al log"""
         self.log_text.insert("end", text)
         self.log_text.see("end")
+
+    def _on_install_cli(self):
+        """Instala Angular CLI directamente en el mismo log"""
+        # Ocultar botón de instalación
+        self.install_cli_btn.pack_forget()
+
+        # Actualizar estado
+        self.installing_cli = True
+        self.progress_bar.start()
+        self.progress_label.configure(text="⏳ Instalando Angular CLI...")
+
+        # Limpiar log y mostrar instalación
+        self._append_log("\n" + "="*60 + "\n")
+        self._append_log("  🔧 INSTALANDO ANGULAR CLI\n")
+        self._append_log("="*60 + "\n\n")
+
+        # Ejecutar instalación en thread separado
+        thread = threading.Thread(target=self._run_cli_installation)
+        thread.daemon = True
+        thread.start()
+
+    def _run_cli_installation(self):
+        """Ejecuta la instalación de Angular CLI"""
+        def log_callback(text):
+            """Callback para recibir logs en tiempo real"""
+            self._append_log(text)
+
+        # Ejecutar instalación
+        success, message = self.verificator.install_angular_cli(callback=log_callback)
+
+        if success:
+            self._append_log(f"\n{'='*60}\n")
+            self._append_log("✅ INSTALACIÓN COMPLETADA CON ÉXITO\n")
+            self._append_log(f"{'='*60}\n\n")
+
+            # Continuar automáticamente con la generación
+            self._append_log("🚀 Continuando con la generación del proyecto...\n\n")
+            self.installing_cli = False
+
+            # Reiniciar generación
+            self._continue_generation_after_install()
+        else:
+            self._append_log(f"\n{'='*60}\n")
+            self._append_log("❌ ERROR EN LA INSTALACIÓN\n")
+            self._append_log(f"{'='*60}\n")
+            self._append_log(f"\n{message}\n\n")
+            self._append_log("Por favor, instala Angular CLI manualmente:\n")
+            self._append_log("npm install -g @angular/cli\n")
+
+            self.installing_cli = False
+            self.progress_bar.stop()
+            self.progress_label.configure(text="❌ Error en instalación")
+
+    def _continue_generation_after_install(self):
+        """Continúa la generación después de instalar Angular CLI"""
+        # Verificar que Angular CLI ahora esté disponible
+        cli_check = self.verificator.verify_angular_cli()
+
+        if not cli_check.found:
+            self._append_log("⚠️ Angular CLI aún no está disponible.\n")
+            self._append_log("Por favor, reinicia la aplicación e intenta nuevamente.\n")
+            self.progress_bar.stop()
+            self.progress_label.configure(text="⚠️ Reinicio requerido")
+            return
+
+        self._append_log(f"✓ Angular CLI {cli_check.version} detectado correctamente\n\n")
+
+        # Continuar con la generación normal
+        try:
+            generation_mode = self.configuration.get('generation_mode', 'complete_project')
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+
+            if generation_mode == 'complete_project':
+                self.output_dir = str(Path(f"./output/proyecto_{timestamp}"))
+                generator = AngularProjectGenerator(self.configuration, self.xml_files)
+            else:
+                self.output_dir = str(Path(f"./output/componentes_{timestamp}"))
+                generator = ComponentsOnlyGenerator(self.configuration, self.xml_files)
+
+            # Configurar callbacks
+            generator.set_log_callback(self._append_log)
+            generator.set_progress_callback(self._update_progress)
+
+            # Ejecutar generación
+            result = generator.generate(self.output_dir)
+
+            if result.success:
+                self._append_log(f"\n{'='*60}\n")
+                self._append_log(f"✓ {i18n.t('step5.success')}\n")
+                self._append_log(f"📁 Directorio: {result.output_dir}\n")
+                self._append_log(f"📄 Archivos generados: {len(result.files_generated)}\n")
+                self._append_log(f"{'='*60}\n")
+                self.generation_complete = True
+                self.output_dir = result.output_dir
+            else:
+                self._append_log(f"\n{'='*60}\n")
+                self._append_log(f"✗ Error: {result.error_message}\n")
+                self._append_log(f"{'='*60}\n")
+                self.generation_complete = False
+
+        except Exception as e:
+            self._append_log(f"\n✗ Error: {str(e)}\n")
+            import traceback
+            self._append_log(f"{traceback.format_exc()}\n")
+            self.generation_complete = False
+        finally:
+            self.progress_bar.stop()
+            self.progress_label.configure(text=i18n.t("step5.completed"))
 
     def _on_open_folder(self):
         """Abre la carpeta de salida en el explorador"""
