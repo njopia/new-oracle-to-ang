@@ -118,28 +118,74 @@ class AngularProjectGenerator(BaseGenerator):
         """
         try:
             style_ext = self.config.get('style_extension', 'scss')
-            routing = '--routing' if self.config.get('routing', True) else '--routing=false'
+            routing = self.config.get('routing', True)
+            standalone = self.config.get('standalone', False)
 
-            # Comando ng new (simulado - en producción ejecutaría el comando real)
-            self._log(f"   ng new {project_name} --style={style_ext} {routing} --skip-git\n")
+            # Construir comando ng new
+            cmd = [
+                'ng', 'new', project_name,
+                f'--style={style_ext}',
+                '--skip-git',
+                '--package-manager=npm'
+            ]
 
-            # TODO: En producción, ejecutar:
-            # subprocess.run([
-            #     'ng', 'new', project_name,
-            #     f'--style={style_ext}',
-            #     routing,
-            #     '--skip-git',
-            #     '--directory', str(output_path / project_name)
-            # ], check=True)
+            # Agregar opciones
+            if routing:
+                cmd.append('--routing')
+            else:
+                cmd.append('--routing=false')
 
-            # Por ahora, crear estructura básica simulada
+            if standalone:
+                cmd.append('--standalone')
+            else:
+                cmd.append('--standalone=false')
+
+            # Ejecutar en el directorio de salida
+            self._log(f"   Ejecutando: {' '.join(cmd)}\n")
+            self._log(f"   Directorio: {output_path}\n\n")
+            self._log("   Por favor espere, esto puede tomar varios minutos...\n")
+            self._log("   (Instalando dependencias de Node.js)\n\n")
+
+            # Ejecutar comando
+            process = subprocess.Popen(
+                cmd,
+                cwd=str(output_path),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                universal_newlines=True
+            )
+
+            # Capturar salida en tiempo real
+            for line in iter(process.stdout.readline, ''):
+                if line:
+                    self._log(f"   {line}")
+
+            process.wait()
+
+            if process.returncode != 0:
+                self._log(f"\n   ✗ Error: ng new falló con código {process.returncode}\n")
+                return False
+
+            # Verificar que el proyecto se creó
             project_path = output_path / project_name
-            (project_path / "src" / "app").mkdir(parents=True, exist_ok=True)
+            if not (project_path / "package.json").exists():
+                self._log(f"\n   ✗ Error: No se encontró package.json\n")
+                return False
+
+            if not (project_path / "angular.json").exists():
+                self._log(f"\n   ✗ Error: No se encontró angular.json\n")
+                return False
 
             return True
 
+        except FileNotFoundError:
+            self._log(f"\n   ✗ Error: Angular CLI no está instalado\n")
+            self._log(f"   Por favor instala Angular CLI: npm install -g @angular/cli\n")
+            return False
         except Exception as e:
-            self._log(f"   ✗ Error al crear proyecto: {str(e)}\n")
+            self._log(f"\n   ✗ Error al crear proyecto: {str(e)}\n")
             return False
 
     def _generate_services(self, project_path: Path):
